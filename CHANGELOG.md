@@ -1,3 +1,7 @@
+## 1.0.1
+
+- Add github public repository and issue tracker
+
 ## 1.0.0+1
 
 - Increase exceptions management

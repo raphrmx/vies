@@ -1,9 +1,9 @@
 name: vies
 description: This dart lib is basically calling web service provided by VIES for check VAT validity
-version: 1.0.0+1
+version: 1.0.1
 homepage: https://www.restomax.com
-repository: https://gitlab.com/restomax2021/dart_vies
-issue_tracker: https://gitlab.com/restomax2021/dart_vies/-/issues
+repository: https://github.com/raphrmx/vies
+issue_tracker: https://github.com/raphrmx/vies/issues
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
