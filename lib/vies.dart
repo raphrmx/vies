@@ -1,0 +1,8 @@
+library vies;
+
+export 'src/constants.dart'
+    show viesServiceUrl, euCountries, viesErrors, viesHeaders;
+export 'src/models/vies_client_error.dart';
+export 'src/models/vies_server_error.dart';
+export 'src/models/vies_validation_response.dart';
+export 'src/vies_provider.dart';
