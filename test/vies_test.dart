@@ -8,10 +8,16 @@ void main() {
       expect(viesProvider.classId.isNotEmpty, isTrue);
     });
 
-    test('Second Test: Get entity infos from Vies', () async {
+    test('Second Test: Get Google France entity infos from Vies', () async {
       final res = await ViesProvider.validateVat(
-          countryCode: 'BE', vatNumber: "0869703879");
+        countryCode: 'FR',
+        vatNumber: "64443061841",
+      );
+      print("--------------------------");
+      print("Vies Response:");
+      print("--------------------------");
       print(res.toString());
+      print("--------------------------");
       expect(res.valid, isTrue);
     });
   });

@@ -4,8 +4,8 @@ Future<void> main() async {
   // Check VAT Number validity and get relative informations
   try {
     final ViesValidationResponse res = await ViesProvider.validateVat(
-      countryCode: 'BE',
-      vatNumber: '0123456789',
+      countryCode: 'FR',
+      vatNumber: '64443061841',
       timeout: const Duration(seconds: 50),
     );
     print(res.toString());
