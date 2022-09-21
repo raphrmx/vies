@@ -103,12 +103,12 @@ const soapBodyTemplate = '''
 /// Http request headers to use SOAP Vies API
 ///
 const viesHeaders = {
-  "Content-Type": "application/x-www-form-urlencoded",
+  "Content-Type": "text/xml",
   "User-Agent": "dart-soap",
-  "Accept":
-      "text/html,application/xhtml+xml,application/xml,text/xml;q=0.9,*/*;q=0.8",
-  "Accept-Encoding": "none",
+  "Accept": "text/html,application/xhtml+xml,application/xml,text/xml;q=0.9,*/*;q=0.8",
+  "Accept-Encoding": "gzip,deflate",
+  "SOAPAction": "",
   "Accept-Charset": "utf-8",
-  "Connection": "close",
+  "Connection": "Keep-Alive",
   "Host": "ec.europa.eu"
 };
