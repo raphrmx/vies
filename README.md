@@ -1,4 +1,4 @@
-[![VIES](https://ec.europa.eu/taxation_customs/vies/images/logo/logo_en.gif)](https://ec.europa.eu/taxation_customs/vies/technicalInformation.html)
+[![VIES](https://ec.europa.eu/taxation_customs/vies/assets/images/ecl/ec/logo/logo-ec--fr.svg)](https://ec.europa.eu/taxation_customs/vies/technicalInformation.html)
 
 https://ec.europa.eu/taxation_customs/vies/technicalInformation.html
 
