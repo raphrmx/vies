@@ -37,12 +37,12 @@ class ViesProvider {
         viesResponse: viesErrors[_parseField(soapMessage, 'faultstring')],
       );
     } else {
-      final countryCode = _parseField(soapMessage, "countryCode");
-      final vatNumber = _parseField(soapMessage, "vatNumber");
-      final name = _parseField(soapMessage, "name");
-      final requestDate = _parseField(soapMessage, "requestDate");
-      final valid = _parseField(soapMessage, "valid")?.toLowerCase() == 'true';
-      final address = _parseField(soapMessage, "address");
+      final countryCode = _parseField(soapMessage, "ns2:countryCode");
+      final vatNumber = _parseField(soapMessage, "ns2:vatNumber");
+      final name = _parseField(soapMessage, "ns2:name");
+      final requestDate = _parseField(soapMessage, "ns2:requestDate");
+      final valid = _parseField(soapMessage, "ns2:valid")?.toLowerCase() == 'true';
+      final address = _parseField(soapMessage, "ns2:address");
 
       /// XML response is valid but VAT number from response is set to invalid
       if (!valid) {
@@ -115,6 +115,7 @@ class ViesProvider {
         viesResponse: viesErrors['SOCKET_EXCEPTION'],
       );
     } catch (e) {
+      print(e.toString());
       if (e is ViesServerError) {
         rethrow;
       }
