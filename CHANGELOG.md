@@ -1,3 +1,7 @@
+## 1.0.2
+
+- Adapt to new vies SOAP response format
+
 ## 1.0.1
 
 - Add github public repository and issue tracker
