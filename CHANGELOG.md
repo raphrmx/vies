@@ -3,6 +3,8 @@
 - Update package to dart ">=3.0.0 <4.0.0"
 - Update all depedencies to lastest versions
 - Improvement of the response parser
+- Add regex validation
+- Add more tests
 
 ## 1.0.2
 

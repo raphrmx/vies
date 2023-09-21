@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:vies/vies.dart';
 
@@ -9,9 +8,11 @@ Future<void> main() async {
       countryCode: 'FR',
       vatNumber: '64443061841',
       timeout: const Duration(seconds: 50),
+      validationLevel: ValidationLevel.all,
+      regexType: RegexType.world,
     );
-    log('$res');
+    print('$res');
   } catch (e) {
-    log('$e');
+    print('$e');
   }
 }
