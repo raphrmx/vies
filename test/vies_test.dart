@@ -22,7 +22,6 @@ void main() {
         countryCode: 'FR',
         vatNumber: "64443061841",
         validationLevel: ValidationLevel.regex,
-        regexType: RegexType.world,
       );
       expect(res.valid, isTrue);
     });
@@ -41,7 +40,6 @@ void main() {
           countryCode: 'FRG5',
           vatNumber: "12345",
           validationLevel: ValidationLevel.regex,
-          regexType: RegexType.world,
         );
         expect(!res.valid, isTrue);
       } catch (e) {
@@ -98,7 +96,6 @@ void main() {
         final res = await ViesProvider.validateVat(
           countryCode: 'FR',
           vatNumber: "64443061841",
-          validationLevel: ValidationLevel.all,
         );
         _printViesResponse(res);
         expect(res.valid, isTrue);
@@ -111,7 +108,6 @@ void main() {
         final res = await ViesProvider.validateVat(
           countryCode: 'FRGF',
           vatNumber: "12345",
-          validationLevel: ValidationLevel.all,
         );
         _printViesResponse(res);
         expect(!res.valid, isTrue);

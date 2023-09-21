@@ -7,8 +7,8 @@ Future<void> main() async {
       countryCode: 'FR',
       vatNumber: '64443061841',
       timeout: const Duration(seconds: 50),
-      validationLevel: ValidationLevel.all,
-      regexType: RegexType.world,
+      // validationLevel: ValidationLevel.all,
+      // regexType: RegexType.world,
     );
     print('$res');
   } catch (e) {

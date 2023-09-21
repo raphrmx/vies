@@ -20,13 +20,14 @@ class ViesProvider {
 
   /// Get an element value from xml Vies response
   static String? _parseField(String soapMessage, String tag) {
-    final regex = RegExp("<$tag>\((\.|\\s)\*?\)</$tag>");
+    final regex = RegExp("<$tag>((.|\\s)*?)</$tag>");
     final res = regex.firstMatch(soapMessage);
     return res?.group(1) != null ? _unescape.convert(res!.group(1)!) : null;
   }
 
   /// Get if Vies resmonse has a fault on xml
-  static String? _hasFault(String soapMessage) => _parseField(soapMessage, 'soap:Fault');
+  static String? _hasFault(String soapMessage) =>
+      _parseField(soapMessage, 'soap:Fault');
 
   /// Parse xml Vies response to ViesValidationResponse
   static ViesValidationResponse _parseSoapResponse(String soapMessage) {
@@ -41,7 +42,8 @@ class ViesProvider {
       final vatNumber = _parseField(soapMessage, "ns2:vatNumber");
       final name = _parseField(soapMessage, "ns2:name");
       final requestDate = _parseField(soapMessage, "ns2:requestDate");
-      final valid = _parseField(soapMessage, "ns2:valid")?.toLowerCase() == 'true';
+      final valid =
+          _parseField(soapMessage, "ns2:valid")?.toLowerCase() == 'true';
       final address = _parseField(soapMessage, "ns2:address");
 
       /// XML response is valid but VAT number from response is set to invalid
@@ -54,7 +56,8 @@ class ViesProvider {
       }
 
       // XML response is invalid
-      final isNotValidInfos = [countryCode, vatNumber, requestDate, address].contains(null);
+      final isNotValidInfos =
+          [countryCode, vatNumber, requestDate, address].contains(null);
 
       if (isNotValidInfos) {
         throw ViesClientError(
@@ -78,7 +81,9 @@ class ViesProvider {
   /// Check VAT validity with regex expression
   static bool _regexVATNumberValid(String vatNumber, RegexType regexType) {
     const parsingRgx = r'\s+|-';
-    final rgx = regexType == RegexType.eu ? r"^(AT|BE|BG|HR|CY|CZ|DE|DK|EE|ES|FI|FR|GB|GR|HU|IE|IT|LT|LU|LV|MT|NL|PL|PT|RO|SE|SI|SK)[0-9A-Za-z\+\*\.]{8,12}$" : r"^[A-Z]{2,4}[A-Z0-9]{8,20}$";
+    final rgx = regexType == RegexType.eu
+        ? r"^(AT|BE|BG|HR|CY|CZ|DE|DK|EE|ES|FI|FR|GB|GR|HU|IE|IT|LT|LU|LV|MT|NL|PL|PT|RO|SE|SI|SK)[0-9A-Za-z\+\*\.]{8,12}$"
+        : r"^[A-Z]{2,4}[A-Z0-9]{8,20}$";
 
     // Regular expression to validate a standard European VAT number
     final regex = RegExp(rgx);
@@ -104,7 +109,8 @@ class ViesProvider {
       const String countryCodePlaceholder = "_country_code_placeholder_";
       const String vatNumberPlaceholder = "_vat_number_placeholder_";
 
-      if ([ValidationLevel.regex, ValidationLevel.all].contains(validationLevel)) {
+      if ([ValidationLevel.regex, ValidationLevel.all]
+          .contains(validationLevel)) {
         if (!_regexVATNumberValid('$countryCode$vatNumber', regexType)) {
           throw ViesServerError(
             message: viesErrors['INVALID_VAT_NUMBER'],
@@ -114,7 +120,8 @@ class ViesProvider {
         }
       }
 
-      if ([ValidationLevel.vies, ValidationLevel.all].contains(validationLevel)) {
+      if ([ValidationLevel.vies, ValidationLevel.all]
+          .contains(validationLevel)) {
         // build xml before send request
         final String xml = soapBodyTemplate
             .replaceAllMapped(
