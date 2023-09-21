@@ -19,7 +19,8 @@ class ViesValidationResponse {
   });
 
   @override
-  String toString() => toJson().entries.map((e) => '${e.key} = ${e.value}').join('\n');
+  String toString() =>
+      toJson().entries.map((e) => '${e.key} = ${e.value}').join('\n');
 
   Map<String, dynamic> toJson() => {
         "countryCode": countryCode,

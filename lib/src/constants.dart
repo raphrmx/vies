@@ -1,8 +1,10 @@
 ///
 /// Vies Vat checker API path's
 ///
-const viesServiceUrl = "https://ec.europa.eu/taxation_customs/vies/services/checkVatService";
-const viesTestServiceUrl = "https://ec.europa.eu/taxation_customs/vies/services/checkVatTestService";
+const viesServiceUrl =
+    "https://ec.europa.eu/taxation_customs/vies/services/checkVatService";
+const viesTestServiceUrl =
+    "https://ec.europa.eu/taxation_customs/vies/services/checkVatTestService";
 const defaultRequestTimeout = Duration(seconds: 30);
 
 const euCountries = [
@@ -58,17 +60,26 @@ const euCountries = [
 ];
 
 const viesErrors = {
-  "INVALID_INPUT": "The provided CountryCode is invalid or the VAT number is empty",
-  "SERVICE_UNAVAILABLE": "The VIES VAT service is unavailable, please try again later",
-  "MS_UNAVAILABLE": "The VAT database of the requested member country is unavailable, please try again later",
-  "MS_MAX_CONCURRENT_REQ": "The VAT database of the requested member country has had too many requests, please try again later",
-  "TIMEOUT": "The request to VAT database of the requested member country has timed out, please try again later",
-  "SOCKET_EXCEPTION": "The service cannot process your request, internet disconnected. Please check your internet connection and try again later",
-  "SERVER_BUSY": "The service cannot process your request, please try again later",
-  "SERVER_DICONNECTED": "The service cannot process your request, service disconnected. Please try again later",
+  "INVALID_INPUT":
+      "The provided CountryCode is invalid or the VAT number is empty",
+  "SERVICE_UNAVAILABLE":
+      "The VIES VAT service is unavailable, please try again later",
+  "MS_UNAVAILABLE":
+      "The VAT database of the requested member country is unavailable, please try again later",
+  "MS_MAX_CONCURRENT_REQ":
+      "The VAT database of the requested member country has had too many requests, please try again later",
+  "TIMEOUT":
+      "The request to VAT database of the requested member country has timed out, please try again later",
+  "SOCKET_EXCEPTION":
+      "The service cannot process your request, internet disconnected. Please check your internet connection and try again later",
+  "SERVER_BUSY":
+      "The service cannot process your request, please try again later",
+  "SERVER_DICONNECTED":
+      "The service cannot process your request, service disconnected. Please try again later",
   "INVALID_REQUESTER_INFO": "The requester info is invalid",
   "PARSING_ERROR": "Failed to parse vat validation info from VIES response",
-  "INVALID_VAT_NUMBER": "Your VAT number is invalid. Please check it and try again",
+  "INVALID_VAT_NUMBER":
+      "Your VAT number is invalid. Please check it and try again",
   "UNKNOWN": "Unknown error",
 };
 
@@ -95,7 +106,8 @@ const soapBodyTemplate = '''
 const viesHeaders = {
   "Content-Type": "text/xml",
   "User-Agent": "dart-soap",
-  "Accept": "text/html,application/xhtml+xml,application/xml,text/xml;q=0.9,*/*;q=0.8",
+  "Accept":
+      "text/html,application/xhtml+xml,application/xml,text/xml;q=0.9,*/*;q=0.8",
   "Accept-Encoding": "gzip,deflate",
   "SOAPAction": "",
   "Accept-Charset": "utf-8",

@@ -1,4 +1,3 @@
-
 enum RegexType {
   eu,
   world,
