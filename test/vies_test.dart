@@ -1,6 +1,14 @@
 import 'package:test/test.dart';
 import 'package:vies/vies.dart';
 
+void _printViesResponse(ViesValidationResponse response) => print('''
+--------------------------
+Vies Response:
+--------------------------
+$response
+--------------------------
+''');
+
 void main() {
   final viesProvider = ViesProvider();
 
@@ -36,7 +44,7 @@ void main() {
           regexType: RegexType.world,
         );
         expect(!res.valid, isTrue);
-      } catch(e) {
+      } catch (e) {
         expect(e is ViesServerError, isTrue);
       }
     });
@@ -49,7 +57,7 @@ void main() {
           regexType: RegexType.eu,
         );
         expect(!res.valid, isTrue);
-      } catch(e) {
+      } catch (e) {
         expect(e is ViesServerError, isTrue);
       }
     });
@@ -63,15 +71,9 @@ void main() {
           vatNumber: "64443061841",
           validationLevel: ValidationLevel.vies,
         );
-        print('''
-        --------------------------\n
-        Vies Response:\n
-        --------------------------\n
-        $res\n
-        --------------------------\n
-        ''');
+        _printViesResponse(res);
         expect(res.valid, isTrue);
-      } catch(e) {
+      } catch (e) {
         expect(e is! ViesServerError, isTrue);
       }
     });
@@ -82,15 +84,9 @@ void main() {
           vatNumber: "123456789",
           validationLevel: ValidationLevel.vies,
         );
-        print('''
-        --------------------------\n
-        Vies Response:\n
-        --------------------------\n
-        $res\n
-        --------------------------\n
-        ''');
+        _printViesResponse(res);
         expect(!res.valid, isTrue);
-      } catch(e) {
+      } catch (e) {
         expect(e is ViesServerError, isTrue);
       }
     });
@@ -104,15 +100,9 @@ void main() {
           vatNumber: "64443061841",
           validationLevel: ValidationLevel.all,
         );
-        print('''
-        --------------------------\n
-        Vies Response:\n
-        --------------------------\n
-        $res\n
-        --------------------------\n
-        ''');
+        _printViesResponse(res);
         expect(res.valid, isTrue);
-      } catch(e) {
+      } catch (e) {
         expect(e is! ViesServerError, isTrue);
       }
     });
@@ -123,15 +113,9 @@ void main() {
           vatNumber: "12345",
           validationLevel: ValidationLevel.all,
         );
-        print('''
-        --------------------------\n
-        Vies Response:\n
-        --------------------------\n
-        $res\n
-        --------------------------\n
-        ''');
+        _printViesResponse(res);
         expect(!res.valid, isTrue);
-      } catch(e) {
+      } catch (e) {
         expect(e is ViesServerError, isTrue);
       }
     });
