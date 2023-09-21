@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:vies/vies.dart';
 
 Future<void> main() async {
@@ -8,8 +10,8 @@ Future<void> main() async {
       vatNumber: '64443061841',
       timeout: const Duration(seconds: 50),
     );
-    print(res.toString());
+    log('$res');
   } catch (e) {
-    print(e.toString());
+    log('$e');
   }
 }

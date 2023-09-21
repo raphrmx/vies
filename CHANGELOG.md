@@ -1,3 +1,9 @@
+## 1.1.0
+
+- Update package to dart ">=3.0.0 <4.0.0"
+- Update all depedencies to lastest versions
+- Improvement of the response parser
+
 ## 1.0.2
 
 - Adapt to new vies SOAP response format

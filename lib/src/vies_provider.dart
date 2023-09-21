@@ -25,8 +25,7 @@ class ViesProvider {
   }
 
   /// Get if Vies resmonse has a fault on xml
-  static String? _hasFault(String soapMessage) =>
-      _parseField(soapMessage, 'soap:Fault');
+  static String? _hasFault(String soapMessage) => _parseField(soapMessage, 'soap:Fault');
 
   /// Parse xml Vies response to ViesValidationResponse
   static ViesValidationResponse _parseSoapResponse(String soapMessage) {
@@ -54,10 +53,9 @@ class ViesProvider {
       }
 
       // XML response is invalid
-      if (countryCode == null ||
-          vatNumber == null ||
-          requestDate == null ||
-          address == null) {
+      final isNotValidInfos = [countryCode, vatNumber, requestDate, address].contains(null);
+
+      if (isNotValidInfos) {
         throw ViesClientError(
           message: 'Failed to parse vat validation info from VIES response',
           errorCode: 'PARSING_ERROR',
@@ -66,9 +64,9 @@ class ViesProvider {
       }
 
       return ViesValidationResponse(
-        countryCode: countryCode,
-        vatNumber: vatNumber,
-        requestDate: requestDate,
+        countryCode: countryCode!,
+        vatNumber: vatNumber!,
+        requestDate: requestDate!,
         valid: valid,
         name: name,
         address: address,
@@ -85,12 +83,21 @@ class ViesProvider {
     Duration? timeout,
   }) async {
     try {
+      const String countryCodePlaceholder = "_country_code_placeholder_";
+      const String vatNumberPlaceholder = "_vat_number_placeholder_";
+
       // build xml before send request
-      final xml = soapBodyTemplate
-          .replaceAll("_country_code_placeholder_", countryCode)
-          .replaceAll("_vat_number_placeholder_", vatNumber)
-          .replaceAll("\n", "")
+      final String xml = soapBodyTemplate
+          .replaceAllMapped(
+            RegExp('$countryCodePlaceholder|$vatNumberPlaceholder|\n'),
+            (match) => (match.group(0) == countryCodePlaceholder)
+                ? countryCode
+                : (match.group(0) == vatNumberPlaceholder)
+                    ? vatNumber
+                    : "",
+          )
           .trim();
+
       final response = await http
           .post(
             Uri.parse(viesServiceUrl),
@@ -98,9 +105,11 @@ class ViesProvider {
             body: xml,
           )
           .timeout(
-            timeout ?? const Duration(seconds: 30),
+            timeout ?? defaultRequestTimeout,
           );
+
       if (response.statusCode != 200) throw Exception(response.reasonPhrase);
+
       return _parseSoapResponse(response.body);
     } on TimeoutException catch (_) {
       throw ViesServerError(
@@ -115,7 +124,6 @@ class ViesProvider {
         viesResponse: viesErrors['SOCKET_EXCEPTION'],
       );
     } catch (e) {
-      print(e.toString());
       if (e is ViesServerError) {
         rethrow;
       }
