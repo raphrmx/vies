@@ -63,11 +63,13 @@ void main() {
           vatNumber: "64443061841",
           validationLevel: ValidationLevel.vies,
         );
-        print("--------------------------");
-        print("Vies Response:");
-        print("--------------------------");
-        print('$res');
-        print("--------------------------");
+        print('''
+        --------------------------\n
+        Vies Response:\n
+        --------------------------\n
+        $res\n
+        --------------------------\n
+        ''');
         expect(res.valid, isTrue);
       } catch(e) {
         expect(e is! ViesServerError, isTrue);
@@ -80,11 +82,13 @@ void main() {
           vatNumber: "123456789",
           validationLevel: ValidationLevel.vies,
         );
-        print("--------------------------");
-        print("Vies Response:");
-        print("--------------------------");
-        print('$res');
-        print("--------------------------");
+        print('''
+        --------------------------\n
+        Vies Response:\n
+        --------------------------\n
+        $res\n
+        --------------------------\n
+        ''');
         expect(!res.valid, isTrue);
       } catch(e) {
         expect(e is ViesServerError, isTrue);
@@ -100,11 +104,13 @@ void main() {
           vatNumber: "64443061841",
           validationLevel: ValidationLevel.all,
         );
-        print("--------------------------");
-        print("Vies Response:");
-        print("--------------------------");
-        print('$res');
-        print("--------------------------");
+        print('''
+        --------------------------\n
+        Vies Response:\n
+        --------------------------\n
+        $res\n
+        --------------------------\n
+        ''');
         expect(res.valid, isTrue);
       } catch(e) {
         expect(e is! ViesServerError, isTrue);
@@ -117,11 +123,13 @@ void main() {
           vatNumber: "12345",
           validationLevel: ValidationLevel.all,
         );
-        print("--------------------------");
-        print("Vies Response:");
-        print("--------------------------");
-        print('$res');
-        print("--------------------------");
+        print('''
+        --------------------------\n
+        Vies Response:\n
+        --------------------------\n
+        $res\n
+        --------------------------\n
+        ''');
         expect(!res.valid, isTrue);
       } catch(e) {
         expect(e is ViesServerError, isTrue);
