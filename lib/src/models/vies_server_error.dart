@@ -6,14 +6,13 @@ class ViesServerError extends AssertionError {
   final String? errorCode;
 
   ViesServerError({
-    final String? message,
+    String? message,
     this.viesResponse,
     this.errorCode,
   }) : super(message);
 
   @override
-  String toString() =>
-      toJson().entries.map((e) => '${e.key} = ${e.value}').join('\n');
+  String toString() => toJson().entries.map((e) => '${e.key} = ${e.value}').join('\n');
 
   Map<String, dynamic> toJson() => {
         "errorCode": errorCode,
