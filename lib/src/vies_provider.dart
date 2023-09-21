@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:http/http.dart' as http;
 import 'package:vies/src/constants.dart';
+import 'package:vies/src/enums.dart';
 import 'package:vies/src/models/vies_client_error.dart';
 import 'package:vies/src/models/vies_server_error.dart';
 import 'package:vies/src/models/vies_validation_response.dart';
@@ -74,43 +75,77 @@ class ViesProvider {
     }
   }
 
+  /// Check VAT validity with regex expression
+  static bool _regexVATNumberValid(String vatNumber, RegexType regexType) {
+    const parsingRgx = r'\s+|-';
+    final rgx = regexType == RegexType.eu ? r"^(AT|BE|BG|HR|CY|CZ|DE|DK|EE|ES|FI|FR|GB|GR|HU|IE|IT|LT|LU|LV|MT|NL|PL|PT|RO|SE|SI|SK)[0-9A-Za-z\+\*\.]{8,12}$" : r"^[A-Z]{2,4}[A-Z0-9]{8,20}$";
+
+    // Regular expression to validate a standard European VAT number
+    final regex = RegExp(rgx);
+
+    // Remove spaces and possible hyphens from user input
+    final parsedVatNumber = vatNumber.replaceAll(RegExp(parsingRgx), '');
+
+    // Check if VAT number matches regular expression
+    return regex.hasMatch(parsedVatNumber);
+  }
+
   ///
   /// Check VAT validity and get relative infos from Vies
   ///
   static Future<ViesValidationResponse> validateVat({
     required String countryCode,
     required String vatNumber,
-    Duration? timeout,
+    Duration timeout = defaultRequestTimeout,
+    ValidationLevel validationLevel = ValidationLevel.all,
+    RegexType regexType = RegexType.world,
   }) async {
     try {
       const String countryCodePlaceholder = "_country_code_placeholder_";
       const String vatNumberPlaceholder = "_vat_number_placeholder_";
 
-      // build xml before send request
-      final String xml = soapBodyTemplate
-          .replaceAllMapped(
-            RegExp('$countryCodePlaceholder|$vatNumberPlaceholder|\n'),
-            (match) => (match.group(0) == countryCodePlaceholder)
-                ? countryCode
-                : (match.group(0) == vatNumberPlaceholder)
-                    ? vatNumber
-                    : "",
-          )
-          .trim();
-
-      final response = await http
-          .post(
-            Uri.parse(viesServiceUrl),
-            headers: viesHeaders,
-            body: xml,
-          )
-          .timeout(
-            timeout ?? defaultRequestTimeout,
+      if ([ValidationLevel.regex, ValidationLevel.all].contains(validationLevel)) {
+        if (!_regexVATNumberValid('$countryCode$vatNumber', regexType)) {
+          throw ViesServerError(
+            message: viesErrors['INVALID_VAT_NUMBER'],
+            errorCode: 'INVALID_VAT_NUMBER',
+            viesResponse: viesErrors['INVALID_VAT_NUMBER'],
           );
+        }
+      }
 
-      if (response.statusCode != 200) throw Exception(response.reasonPhrase);
+      if ([ValidationLevel.vies, ValidationLevel.all].contains(validationLevel)) {
+        // build xml before send request
+        final String xml = soapBodyTemplate
+            .replaceAllMapped(
+              RegExp('$countryCodePlaceholder|$vatNumberPlaceholder|\n'),
+              (match) => (match.group(0) == countryCodePlaceholder)
+                  ? countryCode
+                  : (match.group(0) == vatNumberPlaceholder)
+                      ? vatNumber
+                      : "",
+            )
+            .trim();
 
-      return _parseSoapResponse(response.body);
+        final response = await http
+            .post(
+              Uri.parse(viesServiceUrl),
+              headers: viesHeaders,
+              body: xml,
+            )
+            .timeout(timeout);
+
+        if (response.statusCode != 200) throw Exception(response.reasonPhrase);
+
+        return _parseSoapResponse(response.body);
+      }
+
+      return ViesValidationResponse(
+        countryCode: countryCode,
+        vatNumber: vatNumber,
+        requestDate: '${DateTime.now()}',
+        valid: true,
+      );
     } on TimeoutException catch (_) {
       throw ViesServerError(
         message: 'Failed to get VIES web service. (Offline)',
