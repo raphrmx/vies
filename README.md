@@ -2,6 +2,8 @@
 
 https://ec.europa.eu/taxation_customs/vies/technicalInformation.html
 
+<a alt="ComApps Logo" href="https://comapps.be" target="_blank" rel="noreferrer"><img src="https://www.comapps.be/public/images/CompleteLogoHorizontalMini.png" height="45" style="margin: 15px"></a>
+
 # VIES (VAT Validation)
 This dart lib is basically calling web service provided by VIES (at https://ec.europa.eu/taxation_customs/vies/checkVatService.wsdl) for VAT number validation.
 
