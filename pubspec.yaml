@@ -1,15 +1,22 @@
 name: vies
-description: This dart lib is basically calling web service provided by VIES for check VAT validity
-version: 1.2.0
+description: >-
+  VIES (VAT Information Exchange System) client for Dart — validate European
+  VAT numbers and retrieve business information from the official EU service.
+version: 2.0.0+1
 homepage: https://www.comapps.be
 repository: https://github.com/raphrmx/vies
 issue_tracker: https://github.com/raphrmx/vies/issues
+topics:
+  - vat
+  - vies
+  - validation
+  - tax
+  - eu
 
 environment:
   sdk: '>=3.8.0 <4.0.0'
 
 dependencies:
-  html_unescape: ^2.0.0
   http: ^1.6.0
 
 dev_dependencies:

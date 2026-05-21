@@ -1,178 +1,163 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:html_unescape/html_unescape.dart';
 import 'package:http/http.dart' as http;
 import 'package:vies/src/constants.dart';
 import 'package:vies/src/enums.dart';
-import 'package:vies/src/models/vies_client_error.dart';
-import 'package:vies/src/models/vies_server_error.dart';
+import 'package:vies/src/error_code.dart';
+import 'package:vies/src/models/vies_error.dart';
 import 'package:vies/src/models/vies_validation_response.dart';
+import 'package:vies/src/soap_parser.dart';
+import 'package:vies/src/vat_shape.dart';
+import 'package:vies/src/xml_codec.dart';
 
+/// Entry point of the package. All operations are static — the class is not
+/// instantiable.
 ///
-/// Static provider to easly use
+/// Example:
+/// ```dart
+/// final response = await ViesProvider.validateVat(
+///   countryCode: 'BE',
+///   vatNumber: '1000341796',
+/// );
+/// print('${response.name} — ${response.address}');
+/// ```
 ///
-class ViesProvider {
-  final String classId = "ViesProvider";
+/// Throws:
+///   * [ViesClientError] when the input or the parsed response indicates an
+///     invalid VAT number, a SOAP fault, or a parsing failure.
+///   * [ViesServerError] on network failure, timeout, or any non-2xx HTTP
+///     response from VIES.
+abstract final class ViesProvider {
+  ViesProvider._();
 
-  /// remove encoded html caracter
-  static final _unescape = HtmlUnescape();
-
-  /// Get an element value from xml Vies response
-  static String? _parseField(String soapMessage, String tag) {
-    final regex = RegExp("<$tag>((.|\\s)*?)</$tag>");
-    final res = regex.firstMatch(soapMessage);
-    return res?.group(1) != null ? _unescape.convert(res!.group(1)!) : null;
-  }
-
-  /// Get if Vies resmonse has a fault on xml
-  static String? _hasFault(String soapMessage) =>
-      _parseField(soapMessage, 'soap:Fault');
-
-  /// Parse xml Vies response to ViesValidationResponse
-  static ViesValidationResponse _parseSoapResponse(String soapMessage) {
-    if (_hasFault(soapMessage) != null) {
-      throw ViesClientError(
-        message: 'Failed to parse vat validation info from VIES response',
-        errorCode: _parseField(soapMessage, 'faultstring'),
-        viesResponse: viesErrors[_parseField(soapMessage, 'faultstring')],
-      );
-    } else {
-      final countryCode = _parseField(soapMessage, "ns2:countryCode");
-      final vatNumber = _parseField(soapMessage, "ns2:vatNumber");
-      final name = _parseField(soapMessage, "ns2:name");
-      final requestDate = _parseField(soapMessage, "ns2:requestDate");
-      final valid =
-          _parseField(soapMessage, "ns2:valid")?.toLowerCase() == 'true';
-      final address = _parseField(soapMessage, "ns2:address");
-
-      /// XML response is valid but VAT number from response is set to invalid
-      if (!valid) {
-        throw ViesClientError(
-          message: 'VAT number is invalid',
-          errorCode: 'INVALID_VAT_NUMBER',
-          viesResponse: viesErrors['INVALID_VAT_NUMBER'],
-        );
-      }
-
-      // XML response is invalid
-      final isNotValidInfos =
-          [countryCode, vatNumber, requestDate, address].contains(null);
-
-      if (isNotValidInfos) {
-        throw ViesClientError(
-          message: 'Failed to parse vat validation info from VIES response',
-          errorCode: 'PARSING_ERROR',
-          viesResponse: viesErrors['PARSING_ERROR'],
-        );
-      }
-
-      return ViesValidationResponse(
-        countryCode: countryCode!,
-        vatNumber: vatNumber!,
-        requestDate: requestDate!,
-        valid: valid,
-        name: name,
-        address: address,
-      );
-    }
-  }
-
-  /// Check VAT validity with regex expression
-  static bool _regexVATNumberValid(String vatNumber, RegexType regexType) {
-    const parsingRgx = r'\s+|-';
-    final rgx = regexType == RegexType.eu
-        ? r"^(AT|BE|BG|HR|CY|CZ|DE|DK|EE|ES|FI|FR|GB|GR|HU|IE|IT|LT|LU|LV|MT|NL|PL|PT|RO|SE|SI|SK)[0-9A-Za-z\+\*\.]{8,12}$"
-        : r"^[A-Z]{2,4}[A-Z0-9]{8,20}$";
-
-    // Regular expression to validate a standard European VAT number
-    final regex = RegExp(rgx);
-
-    // Remove spaces and possible hyphens from user input
-    final parsedVatNumber = vatNumber.replaceAll(RegExp(parsingRgx), '');
-
-    // Check if VAT number matches regular expression
-    return regex.hasMatch(parsedVatNumber);
-  }
-
+  /// Validate a VAT number against the VIES SOAP service.
   ///
-  /// Check VAT validity and get relative infos from Vies
-  ///
+  /// Parameters:
+  ///   * [countryCode] — two-letter country prefix. Use `EL` for Greece and
+  ///     `XI` for Northern Ireland.
+  ///   * [vatNumber] — the digits/letters that follow the country prefix.
+  ///     Spaces and hyphens are tolerated and stripped before validation.
+  ///   * [timeout] — applied to the HTTP call. Defaults to
+  ///     [defaultRequestTimeout].
+  ///   * [validationLevel] — see [ValidationLevel].
+  ///   * [regexType] — see [RegexType].
+  ///   * [client] — an optional [http.Client] to reuse across calls. Useful
+  ///     for connection pooling and for injecting a mock in tests. When
+  ///     omitted, a one-shot client is created and closed.
+  ///   * [retries] — how many extra attempts to make after a transient
+  ///     failure (timeout, MS unavailable, rate limited…). Defaults to `0`.
+  ///     Each retry waits `200ms * 2^attempt` before re-issuing the call.
   static Future<ViesValidationResponse> validateVat({
     required String countryCode,
     required String vatNumber,
     Duration timeout = defaultRequestTimeout,
     ValidationLevel validationLevel = ValidationLevel.all,
     RegexType regexType = RegexType.world,
+    http.Client? client,
+    int retries = 0,
   }) async {
-    try {
-      const String countryCodePlaceholder = "_country_code_placeholder_";
-      const String vatNumberPlaceholder = "_vat_number_placeholder_";
+    final cleanCountry = countryCode.trim().toUpperCase();
+    final cleanVat = VatShape.normalize(vatNumber);
 
-      if ([ValidationLevel.regex, ValidationLevel.all]
-          .contains(validationLevel)) {
-        if (!_regexVATNumberValid('$countryCode$vatNumber', regexType)) {
-          throw ViesServerError(
-            message: viesErrors['INVALID_VAT_NUMBER'],
-            errorCode: 'INVALID_VAT_NUMBER',
-            viesResponse: viesErrors['INVALID_VAT_NUMBER'],
-          );
-        }
+    if (validationLevel == ValidationLevel.regex ||
+        validationLevel == ValidationLevel.all) {
+      if (!VatShape.isValid('$cleanCountry$cleanVat', regexType)) {
+        throw const ViesClientError(code: ViesErrorCode.invalidVatNumber);
       }
+    }
 
-      if ([ValidationLevel.vies, ValidationLevel.all]
-          .contains(validationLevel)) {
-        // build xml before send request
-        final String xml = soapBodyTemplate
-            .replaceAllMapped(
-              RegExp('$countryCodePlaceholder|$vatNumberPlaceholder|\n'),
-              (match) => (match.group(0) == countryCodePlaceholder)
-                  ? countryCode
-                  : (match.group(0) == vatNumberPlaceholder)
-                      ? vatNumber
-                      : "",
-            )
-            .trim();
-
-        final response = await http
-            .post(
-              Uri.parse(viesServiceUrl),
-              headers: viesHeaders,
-              body: xml,
-            )
-            .timeout(timeout);
-
-        if (response.statusCode != 200) throw Exception(response.reasonPhrase);
-
-        return _parseSoapResponse(response.body);
-      }
-
+    if (validationLevel == ValidationLevel.regex) {
       return ViesValidationResponse(
-        countryCode: countryCode,
-        vatNumber: vatNumber,
-        requestDate: '${DateTime.now()}',
+        countryCode: cleanCountry,
+        vatNumber: cleanVat,
+        requestDate: DateTime.now().toUtc().toIso8601String(),
         valid: true,
       );
-    } on TimeoutException catch (_) {
-      throw ViesServerError(
-        message: 'Failed to get VIES web service. (Offline)',
-        errorCode: 'TIMEOUT',
-        viesResponse: viesErrors['TIMEOUT'],
+    }
+
+    final ownedClient = client == null;
+    final httpClient = client ?? http.Client();
+    try {
+      return await _callWithRetries(
+        client: httpClient,
+        countryCode: cleanCountry,
+        vatNumber: cleanVat,
+        timeout: timeout,
+        retries: retries,
       );
-    } on SocketException catch (_) {
-      throw ViesServerError(
-        message: 'Failed to get VIES web service. (No Internet Connection)',
-        errorCode: 'SOCKET_EXCEPTION',
-        viesResponse: viesErrors['SOCKET_EXCEPTION'],
-      );
-    } catch (e) {
-      if (e is ViesServerError) {
-        rethrow;
+    } finally {
+      if (ownedClient) httpClient.close();
+    }
+  }
+
+  /// Parse a raw SOAP body without performing the HTTP call. Exposed for
+  /// tests and tooling.
+  static ViesValidationResponse debugParseSoapResponse(String soapMessage) =>
+      SoapParser.parse(soapMessage);
+
+  // --------------------------------------------------------------------------
+  // HTTP layer
+  // --------------------------------------------------------------------------
+
+  static Future<ViesValidationResponse> _callWithRetries({
+    required http.Client client,
+    required String countryCode,
+    required String vatNumber,
+    required Duration timeout,
+    required int retries,
+  }) async {
+    var attempt = 0;
+    while (true) {
+      try {
+        return await _callOnce(
+          client: client,
+          countryCode: countryCode,
+          vatNumber: vatNumber,
+          timeout: timeout,
+        );
+      } on ViesServerError catch (error) {
+        if (attempt >= retries || !error.code.isRetryable) rethrow;
+        await Future<void>.delayed(
+          Duration(milliseconds: 200 * (1 << attempt)),
+        );
+        attempt++;
       }
+    }
+  }
+
+  static Future<ViesValidationResponse> _callOnce({
+    required http.Client client,
+    required String countryCode,
+    required String vatNumber,
+    required Duration timeout,
+  }) async {
+    final body = soapBodyTemplate
+        .replaceAll('{countryCode}', XmlCodec.escape(countryCode))
+        .replaceAll('{vatNumber}', XmlCodec.escape(vatNumber));
+
+    try {
+      final response = await client
+          .post(Uri.parse(viesServiceUrl), headers: viesHeaders, body: body)
+          .timeout(timeout);
+
+      if (response.statusCode != 200) {
+        throw ViesServerError(
+          code: ViesErrorCode.serverDisconnected,
+          message: 'VIES returned HTTP ${response.statusCode} '
+              '(${response.reasonPhrase ?? 'no reason'}).',
+        );
+      }
+
+      return SoapParser.parse(response.body);
+    } on TimeoutException {
+      throw const ViesServerError(code: ViesErrorCode.timeout);
+    } on SocketException {
+      throw const ViesServerError(code: ViesErrorCode.socketException);
+    } on http.ClientException catch (error) {
       throw ViesServerError(
-        message: 'Failed to get VIES web service. (Offline)',
-        errorCode: 'SERVER_DICONNECTED',
-        viesResponse: viesErrors['SERVER_DICONNECTED'],
+        code: ViesErrorCode.serverDisconnected,
+        message: error.message,
       );
     }
   }
