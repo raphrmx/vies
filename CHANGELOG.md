@@ -42,6 +42,9 @@ Major rewrite. **Breaking changes** — see migration notes below.
 - Empty `name` / `address` values are normalised to `null`.
 
 ### Fixed
+- Removed the `dart:io` import (used only for `SocketException`) which broke
+  Flutter web compilation. Transport failures are now classified from
+  `http.ClientException` and work on every platform, web included.
 - Catch-all that previously swallowed `ViesClientError` from the parsing
   path and reported every failure as `SERVER_DISCONNECTED`.
 - Typo in error code `SERVER_DICONNECTED` → `SERVER_DISCONNECTED` (now

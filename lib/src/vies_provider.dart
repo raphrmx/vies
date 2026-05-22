@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:vies/src/constants.dart';
@@ -152,13 +151,34 @@ abstract final class ViesProvider {
       return SoapParser.parse(response.body);
     } on TimeoutException {
       throw const ViesServerError(code: ViesErrorCode.timeout);
-    } on SocketException {
-      throw const ViesServerError(code: ViesErrorCode.socketException);
     } on http.ClientException catch (error) {
+      // `package:http` wraps transport failures in [http.ClientException] on
+      // every platform. On native, connectivity errors arrive as a subtype
+      // that also implements `SocketException`; on web they are plain
+      // `ClientException`. We avoid importing `dart:io` (which breaks Flutter
+      // web) and classify connectivity failures heuristically instead.
       throw ViesServerError(
-        code: ViesErrorCode.serverDisconnected,
+        code: _isConnectivityError(error.message)
+            ? ViesErrorCode.socketException
+            : ViesErrorCode.serverDisconnected,
         message: error.message,
       );
     }
+  }
+
+  /// Heuristic detection of a connectivity (offline) failure from an
+  /// [http.ClientException] message, without depending on `dart:io`.
+  static bool _isConnectivityError(String message) {
+    final m = message.toLowerCase();
+    return m.contains('socket') ||
+        m.contains('failed host lookup') ||
+        m.contains('connection refused') ||
+        m.contains('connection closed') ||
+        m.contains('connection reset') ||
+        m.contains('connection failed') ||
+        m.contains('connection terminated') ||
+        m.contains('network is unreachable') ||
+        m.contains('no address associated') ||
+        m.contains('xmlhttprequest'); // browser: network/CORS failure
   }
 }

@@ -219,6 +219,46 @@ void main() {
       );
     });
 
+    test('connectivity ClientException maps to socketException', () async {
+      final mock = MockClient((req) =>
+          throw http.ClientException('Failed host lookup: ec.europa.eu'));
+      await expectLater(
+        () => ViesProvider.validateVat(
+          countryCode: 'FR',
+          vatNumber: '64443061841',
+          validationLevel: ValidationLevel.vies,
+          client: mock,
+        ),
+        throwsA(
+          isA<ViesServerError>().having(
+            (e) => e.code,
+            'code',
+            ViesErrorCode.socketException,
+          ),
+        ),
+      );
+    });
+
+    test('generic ClientException maps to serverDisconnected', () async {
+      final mock =
+          MockClient((req) => throw http.ClientException('Malformed response'));
+      await expectLater(
+        () => ViesProvider.validateVat(
+          countryCode: 'FR',
+          vatNumber: '64443061841',
+          validationLevel: ValidationLevel.vies,
+          client: mock,
+        ),
+        throwsA(
+          isA<ViesServerError>().having(
+            (e) => e.code,
+            'code',
+            ViesErrorCode.serverDisconnected,
+          ),
+        ),
+      );
+    });
+
     test('retries on transient MS_UNAVAILABLE then succeeds', () async {
       var calls = 0;
       final mock = MockClient((req) async {
