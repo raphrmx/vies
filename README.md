@@ -1,6 +1,6 @@
 [![VIES](https://ec.europa.eu/taxation_customs/vies/assets/images/ecl/ec/logo/logo-ec--fr.svg)](https://ec.europa.eu/taxation_customs/vies/technicalInformation.html)
 
-<a alt="ComApps Logo" href="https://comapps.be" target="_blank" rel="noreferrer"><img src="https://www.comapps.be/public/images/CompleteLogoHorizontalMini.png" height="45" style="margin: 15px"></a>
+<a alt="ComApps Logo" href="https://comapps.be" target="_blank" rel="noreferrer"><img src="https://www.comapps.be/wp-content/uploads/2026/09/CompleteLogoHorizontalMini.png" style="margin: 15px"></a>
 
 # VIES (VAT Validation)
 
@@ -38,10 +38,10 @@ Future<void> main() async {
     print('Valid VAT for ${response.name}');
     print('Address: ${response.address}');
   } on ViesClientError catch (e) {
-    // Invalid VAT, parsing errors, INVALID_INPUT faults …
+    // Invalid VAT, parsing errors, INVALID_INPUT faults ...
     print('Client error: ${e.code.wireName} — ${e.message}');
   } on ViesServerError catch (e) {
-    // Network, timeout, VIES outage …
+    // Network, timeout, VIES outage ...
     print('Server error: ${e.code.wireName} — ${e.message}');
   }
 }
@@ -122,4 +122,4 @@ VIES uses ISO 3166-1 alpha-2 codes, with two exceptions:
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).

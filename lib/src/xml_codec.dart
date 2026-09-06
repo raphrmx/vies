@@ -1,22 +1,22 @@
 /// Minimal XML codec used to talk to the VIES SOAP service.
 ///
-/// VIES responses use a small, predictable subset of XML — no CDATA, no
+/// VIES responses use a small, predictable subset of XML - no CDATA, no
 /// processing instructions, only the five predefined entities plus numeric
 /// character references. A full-blown XML parser would be overkill (and a
 /// transitive dependency); this codec covers exactly what's needed.
 library;
 
-/// Static helpers — not meant to be instantiated.
+/// Static helpers - not meant to be instantiated.
 abstract final class XmlCodec {
   XmlCodec._();
 
-  /// Numeric XML entity (decimal): `&#39;` → `'`.
+  /// Numeric XML entity (decimal): `&#39;` -> `'`.
   static final RegExp _decEntity = RegExp(r'&#(\d+);');
 
-  /// Numeric XML entity (hexadecimal): `&#x27;` → `'`.
+  /// Numeric XML entity (hexadecimal): `&#x27;` -> `'`.
   static final RegExp _hexEntity = RegExp('&#x([0-9a-fA-F]+);');
 
-  /// Matches `<soap:Fault>…</soap:Fault>` regardless of namespace prefix.
+  /// Matches `<soap:Fault>...</soap:Fault>` regardless of namespace prefix.
   static final RegExp faultRegex = RegExp(
     r'<(?:\w+:)?Fault\b[^>]*>([\s\S]*?)</(?:\w+:)?Fault>',
   );

@@ -136,7 +136,8 @@ void main() {
     });
 
     test('tolerates tag attributes and namespace prefix variations', () {
-      const xml = '<env:Envelope xmlns:env="x">'
+      const xml =
+          '<env:Envelope xmlns:env="x">'
           '<env:Body>'
           '<r:checkVatResponse xmlns:r="urn:x">'
           '<r:countryCode xml:lang="en">BE</r:countryCode>'
@@ -220,8 +221,9 @@ void main() {
     });
 
     test('connectivity ClientException maps to socketException', () async {
-      final mock = MockClient((req) =>
-          throw http.ClientException('Failed host lookup: ec.europa.eu'));
+      final mock = MockClient(
+        (req) => throw http.ClientException('Failed host lookup: ec.europa.eu'),
+      );
       await expectLater(
         () => ViesProvider.validateVat(
           countryCode: 'FR',
@@ -240,8 +242,9 @@ void main() {
     });
 
     test('generic ClientException maps to serverDisconnected', () async {
-      final mock =
-          MockClient((req) => throw http.ClientException('Malformed response'));
+      final mock = MockClient(
+        (req) => throw http.ClientException('Malformed response'),
+      );
       await expectLater(
         () => ViesProvider.validateVat(
           countryCode: 'FR',

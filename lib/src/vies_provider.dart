@@ -10,7 +10,7 @@ import 'package:vies/src/soap_parser.dart';
 import 'package:vies/src/vat_shape.dart';
 import 'package:vies/src/xml_codec.dart';
 
-/// Entry point of the package. All operations are static — the class is not
+/// Entry point of the package. All operations are static - the class is not
 /// instantiable.
 ///
 /// Example:
@@ -19,7 +19,7 @@ import 'package:vies/src/xml_codec.dart';
 ///   countryCode: 'BE',
 ///   vatNumber: '1000341796',
 /// );
-/// print('${response.name} — ${response.address}');
+/// print('${response.name} - ${response.address}');
 /// ```
 ///
 /// Throws:
@@ -33,19 +33,19 @@ abstract final class ViesProvider {
   /// Validate a VAT number against the VIES SOAP service.
   ///
   /// Parameters:
-  ///   * [countryCode] — two-letter country prefix. Use `EL` for Greece and
+  ///   * [countryCode] - two-letter country prefix. Use `EL` for Greece and
   ///     `XI` for Northern Ireland.
-  ///   * [vatNumber] — the digits/letters that follow the country prefix.
+  ///   * [vatNumber] - the digits/letters that follow the country prefix.
   ///     Spaces and hyphens are tolerated and stripped before validation.
-  ///   * [timeout] — applied to the HTTP call. Defaults to
+  ///   * [timeout] - applied to the HTTP call. Defaults to
   ///     [defaultRequestTimeout].
-  ///   * [validationLevel] — see [ValidationLevel].
-  ///   * [regexType] — see [RegexType].
-  ///   * [client] — an optional [http.Client] to reuse across calls. Useful
+  ///   * [validationLevel] - see [ValidationLevel].
+  ///   * [regexType] - see [RegexType].
+  ///   * [client] - an optional [http.Client] to reuse across calls. Useful
   ///     for connection pooling and for injecting a mock in tests. When
   ///     omitted, a one-shot client is created and closed.
-  ///   * [retries] — how many extra attempts to make after a transient
-  ///     failure (timeout, MS unavailable, rate limited…). Defaults to `0`.
+  ///   * [retries] - how many extra attempts to make after a transient
+  ///     failure (timeout, MS unavailable, rate limited...). Defaults to `0`.
   ///     Each retry waits `200ms * 2^attempt` before re-issuing the call.
   static Future<ViesValidationResponse> validateVat({
     required String countryCode,
@@ -143,7 +143,8 @@ abstract final class ViesProvider {
       if (response.statusCode != 200) {
         throw ViesServerError(
           code: ViesErrorCode.serverDisconnected,
-          message: 'VIES returned HTTP ${response.statusCode} '
+          message:
+              'VIES returned HTTP ${response.statusCode} '
               '(${response.reasonPhrase ?? 'no reason'}).',
         );
       }
