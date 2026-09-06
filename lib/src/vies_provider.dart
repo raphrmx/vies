@@ -37,16 +37,20 @@ abstract final class ViesProvider {
   ///     `XI` for Northern Ireland.
   ///   * [vatNumber] - the digits/letters that follow the country prefix.
   ///     Spaces and hyphens are tolerated and stripped before validation.
-  ///   * [timeout] - applied to the HTTP call. Defaults to
-  ///     [defaultRequestTimeout].
+  ///   * [timeout] - applied to each HTTP attempt, not to the call as a whole.
+  ///     With [retries] the total wall time reaches `(retries + 1) * timeout`
+  ///     plus the backoff. Defaults to [defaultRequestTimeout].
   ///   * [validationLevel] - see [ValidationLevel].
   ///   * [regexType] - see [RegexType].
   ///   * [client] - an optional [http.Client] to reuse across calls. Useful
   ///     for connection pooling and for injecting a mock in tests. When
   ///     omitted, a one-shot client is created and closed.
   ///   * [retries] - how many extra attempts to make after a transient
-  ///     failure (timeout, MS unavailable, rate limited...). Defaults to `0`.
-  ///     Each retry waits `200ms * 2^attempt` before re-issuing the call.
+  ///     failure (timeout, MS unavailable, rate limited...). Defaults to `0`,
+  ///     and a negative value counts as `0`. Each retry waits
+  ///     `200ms * 2^attempt`, capped at [maxRetryBackoff].
+  ///   * [serviceUrl] - endpoint to call. Defaults to [viesServiceUrl]; pass
+  ///     [viesTestServiceUrl] to exercise the deterministic test service.
   static Future<ViesValidationResponse> validateVat({
     required String countryCode,
     required String vatNumber,
@@ -55,6 +59,7 @@ abstract final class ViesProvider {
     RegexType regexType = RegexType.world,
     http.Client? client,
     int retries = 0,
+    String serviceUrl = viesServiceUrl,
   }) async {
     final cleanCountry = countryCode.trim().toUpperCase();
     final cleanVat = VatShape.normalize(vatNumber);
@@ -72,6 +77,7 @@ abstract final class ViesProvider {
         vatNumber: cleanVat,
         requestDate: DateTime.now().toUtc().toIso8601String(),
         valid: true,
+        source: ValidationSource.regex,
       );
     }
 
@@ -83,7 +89,8 @@ abstract final class ViesProvider {
         countryCode: cleanCountry,
         vatNumber: cleanVat,
         timeout: timeout,
-        retries: retries,
+        retries: retries < 0 ? 0 : retries,
+        serviceUrl: serviceUrl,
       );
     } finally {
       if (ownedClient) httpClient.close();
@@ -105,6 +112,7 @@ abstract final class ViesProvider {
     required String vatNumber,
     required Duration timeout,
     required int retries,
+    required String serviceUrl,
   }) async {
     var attempt = 0;
     while (true) {
@@ -114,15 +122,24 @@ abstract final class ViesProvider {
           countryCode: countryCode,
           vatNumber: vatNumber,
           timeout: timeout,
+          serviceUrl: serviceUrl,
         );
       } on ViesServerError catch (error) {
         if (attempt >= retries || !error.code.isRetryable) rethrow;
-        await Future<void>.delayed(
-          Duration(milliseconds: 200 * (1 << attempt)),
-        );
+        await Future<void>.delayed(_backoffFor(attempt));
         attempt++;
       }
     }
+  }
+
+  /// Exponential backoff for [attempt], capped so a large `retries` cannot
+  /// turn into an unbounded wait.
+  static Duration _backoffFor(int attempt) {
+    if (attempt >= 16) return maxRetryBackoff;
+    final milliseconds = 200 * (1 << attempt);
+    return milliseconds >= maxRetryBackoff.inMilliseconds
+        ? maxRetryBackoff
+        : Duration(milliseconds: milliseconds);
   }
 
   static Future<ViesValidationResponse> _callOnce({
@@ -130,6 +147,7 @@ abstract final class ViesProvider {
     required String countryCode,
     required String vatNumber,
     required Duration timeout,
+    required String serviceUrl,
   }) async {
     final body = soapBodyTemplate
         .replaceAll('{countryCode}', XmlCodec.escape(countryCode))
@@ -137,7 +155,7 @@ abstract final class ViesProvider {
 
     try {
       final response = await client
-          .post(Uri.parse(viesServiceUrl), headers: viesHeaders, body: body)
+          .post(Uri.parse(serviceUrl), headers: viesHeaders, body: body)
           .timeout(timeout);
 
       if (response.statusCode != 200) {

@@ -1,0 +1,53 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Catches SDK drift on a package that can go months without a commit: a new
+  # formatter default or a new lint shows up here rather than on the next release.
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: [stable, beta]
+
+    # The beta leg is an early warning, not a gate.
+    continue-on-error: ${{ matrix.sdk == 'beta' }}
+
+    name: ${{ matrix.sdk }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ matrix.sdk }}
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      # Language features are gated by the pubspec lower bound, so this also
+      # guards the declared Dart 3.8 floor.
+      - name: Analyze
+        run: dart analyze --fatal-infos
+
+      # The suite uses MockClient, so it never reaches the VIES service.
+      - name: Run tests
+        run: dart test
+
+      # Fails on a packaging regression, such as a CHANGELOG that no longer
+      # mentions the version in pubspec.yaml.
+      - name: Validate the package
+        run: dart pub publish --dry-run

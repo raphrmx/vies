@@ -13,8 +13,12 @@ const String viesTestServiceUrl =
     'https://ec.europa.eu/taxation_customs/vies/services/checkVatTestService';
 
 /// Default timeout applied to a VIES call when the caller does not override
-/// it.
+/// it. It bounds one attempt, not a whole `validateVat` with retries.
 const Duration defaultRequestTimeout = Duration(seconds: 30);
+
+/// Upper bound on the exponential backoff between two retried attempts, so a
+/// large `retries` cannot turn into an unbounded wait.
+const Duration maxRetryBackoff = Duration(seconds: 5);
 
 /// Convenience list of European country codes the package may encounter when
 /// dealing with VAT numbers. This is **not** a strict list of EU member

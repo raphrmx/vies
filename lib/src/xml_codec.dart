@@ -35,21 +35,27 @@ abstract final class XmlCodec {
 
   /// Reverse of [escape]. Also decodes numeric character references
   /// (`&#39;`, `&#x27;`) that VIES may emit for non-ASCII business names.
+  ///
+  /// A reference that names no valid code point is left in place rather than
+  /// raising: the body comes off the network, and a malformed one must surface
+  /// as a [ViesError] from the parser, never as a raw [RangeError].
   static String unescape(String value) => value
-      .replaceAllMapped(
-        _decEntity,
-        (m) => String.fromCharCode(int.parse(m.group(1)!)),
-      )
-      .replaceAllMapped(
-        _hexEntity,
-        (m) => String.fromCharCode(int.parse(m.group(1)!, radix: 16)),
-      )
+      .replaceAllMapped(_decEntity, (m) => _decodeReference(m, 10))
+      .replaceAllMapped(_hexEntity, (m) => _decodeReference(m, 16))
       .replaceAll('&lt;', '<')
       .replaceAll('&gt;', '>')
       .replaceAll('&quot;', '"')
       .replaceAll('&apos;', "'")
       // Must be last to avoid double-decoding sequences like `&amp;lt;`.
       .replaceAll('&amp;', '&');
+
+  /// Decodes one numeric character reference, or returns it untouched when it
+  /// is out of the Unicode range or too large to parse.
+  static String _decodeReference(Match match, int radix) {
+    final code = int.tryParse(match.group(1)!, radix: radix);
+    if (code == null || code < 0 || code > 0x10FFFF) return match.group(0)!;
+    return String.fromCharCode(code);
+  }
 
   /// Extract the text content of the first element whose local name matches
   /// [localName]. Ignores any XML namespace prefix and tolerates arbitrary

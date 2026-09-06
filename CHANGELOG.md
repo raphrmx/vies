@@ -3,6 +3,15 @@
 Major rewrite. **Breaking changes** - see migration notes below.
 
 ### Added
+- `VatShape` is now public: `VatShape.isValid` and `VatShape.normalize` give
+  an offline shape check without a network call, and
+  `VatShape.supportedCountryCodes` lists the prefixes `RegexType.eu` knows.
+- `ValidationSource` on `ViesValidationResponse`: `regex` marks a result that
+  only passed the offline shape check, `vies` one a member state confirmed.
+  A regex-only answer is no longer indistinguishable from a real validation.
+- `serviceUrl:` parameter on `validateVat`, so `viesTestServiceUrl` can
+  actually be reached. It was exported but unusable.
+- `maxRetryBackoff` constant, capping the exponential backoff.
 - `ViesErrorCode` enum replacing the previous string codes; each value
   carries a `wireName` (stable identifier) and a human-readable `message`.
 - Sealed `ViesError` base class, implemented by `ViesClientError` and
@@ -23,7 +32,39 @@ Major rewrite. **Breaking changes** - see migration notes below.
   regex.
 - XML escaping of inputs before they are placed in the SOAP body.
 
+### Fixed
+- An unreadable response body was reported as `INVALID_VAT_NUMBER` instead of
+  `PARSING_ERROR`. An HTML error page served with a 200, or an empty body, told
+  the caller their VAT number was invalid when it was not. The completeness
+  check now runs before the `valid` flag is read.
+- A VAT number typed in lower case was rejected offline: `normalize` stripped
+  separators without upper-casing, while the default `RegexType.world` pattern
+  requires upper case. Numbers ending in a letter, such as the Dutch `B01`,
+  were the visible victims.
+- `RegexType.eu` applied one shared `{8,12}` length to all 29 prefixes, which
+  rejected registered numbers. Each member state now has its own format, so
+  Romanian numbers (2 to 10 digits) validate.
+- A malformed numeric character reference in a business name raised a raw
+  `RangeError` through the documented `ViesError` contract. Such a reference is
+  now left in place.
+- The retry backoff had no ceiling, so a large `retries` produced unbounded
+  waits. It is capped at `maxRetryBackoff`, and a negative `retries` counts
+  as zero.
+- Removed the `dart:io` import (used only for `SocketException`) which broke
+  Flutter web compilation. Transport failures are now classified from
+  `http.ClientException` and work on every platform, web included.
+- Catch-all that previously swallowed `ViesClientError` from the parsing
+  path and reported every failure as `SERVER_DISCONNECTED`.
+- Typo in error code `SERVER_DICONNECTED` -> `SERVER_DISCONNECTED` (now
+  exposed only via `ViesErrorCode.serverDisconnected.wireName`).
+- Iceland country code corrected from `IC` to `IS`.
+- Regex shape errors now raise `ViesClientError` (was `ViesServerError`).
+
 ### Changed
+- `soapBodyTemplate` and `viesHeaders` are no longer exported: they describe
+  how the request is built, not what the package offers.
+- `timeout` is documented as bounding one attempt, not a whole call with
+  retries.
 - `ViesProvider` is now an `abstract final class` with a private constructor
   - no longer instantiable.
 - Internal modules split out of the provider for clarity and testability:
@@ -40,17 +81,6 @@ Major rewrite. **Breaking changes** - see migration notes below.
   elements and arbitrary attributes on tags.
 - `requestDate` in regex-only mode is now a proper ISO 8601 UTC timestamp.
 - Empty `name` / `address` values are normalised to `null`.
-
-### Fixed
-- Removed the `dart:io` import (used only for `SocketException`) which broke
-  Flutter web compilation. Transport failures are now classified from
-  `http.ClientException` and work on every platform, web included.
-- Catch-all that previously swallowed `ViesClientError` from the parsing
-  path and reported every failure as `SERVER_DISCONNECTED`.
-- Typo in error code `SERVER_DICONNECTED` -> `SERVER_DISCONNECTED` (now
-  exposed only via `ViesErrorCode.serverDisconnected.wireName`).
-- Iceland country code corrected from `IC` to `IS`.
-- Regex shape errors now raise `ViesClientError` (was `ViesServerError`).
 
 ### Removed
 - `html_unescape` dependency - replaced by an in-package XML entity decoder.

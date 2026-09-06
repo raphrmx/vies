@@ -1,5 +1,7 @@
-/// Result of a successful VAT validation (either via the VIES SOAP service or
-/// via a local regex check).
+import 'package:vies/src/enums.dart';
+
+/// Result of a successful VAT validation, either from the VIES SOAP service
+/// or from a local shape check. [source] says which of the two answered.
 ///
 /// Notes on the date format:
 ///   * When the response comes from VIES, [requestDate] is the raw value
@@ -23,6 +25,8 @@ class ViesValidationResponse {
   /// - [valid]: whether the number is registered.
   /// - [name]: registered business name, when the member state publishes it.
   /// - [address]: registered address, when the member state publishes it.
+  /// - [source]: which check produced this result. Defaults to
+  ///   [ValidationSource.vies].
   const ViesValidationResponse({
     required this.countryCode,
     required this.vatNumber,
@@ -30,6 +34,7 @@ class ViesValidationResponse {
     required this.valid,
     this.name,
     this.address,
+    this.source = ValidationSource.vies,
   });
 
   /// Build a response from a decoded JSON map (e.g. the output of [toJson]).
@@ -41,6 +46,10 @@ class ViesValidationResponse {
         valid: json['valid']! as bool,
         name: json['name'] as String?,
         address: json['address'] as String?,
+        source: ValidationSource.values.firstWhere(
+          (value) => value.name == json['source'],
+          orElse: () => ValidationSource.vies,
+        ),
       );
 
   /// Two-letter country code reported by VIES. For Greece this is `EL`, for
@@ -63,6 +72,12 @@ class ViesValidationResponse {
   /// Registered address of the business, when disclosed by the member state.
   final String? address;
 
+  /// Which check produced this result.
+  ///
+  /// [ValidationSource.regex] means only the offline shape was checked, so
+  /// [valid] carries no confirmation from any member state.
+  final ValidationSource source;
+
   /// Best-effort [DateTime] parse of [requestDate]. Returns `null` when the
   /// value cannot be parsed.
   DateTime? get requestDateTime {
@@ -83,6 +98,7 @@ class ViesValidationResponse {
     bool? valid,
     String? name,
     String? address,
+    ValidationSource? source,
   }) => ViesValidationResponse(
     countryCode: countryCode ?? this.countryCode,
     vatNumber: vatNumber ?? this.vatNumber,
@@ -90,6 +106,7 @@ class ViesValidationResponse {
     valid: valid ?? this.valid,
     name: name ?? this.name,
     address: address ?? this.address,
+    source: source ?? this.source,
   );
 
   /// JSON representation, round-trippable through
@@ -101,6 +118,7 @@ class ViesValidationResponse {
     'valid': valid,
     'name': name,
     'address': address,
+    'source': source.name,
   };
 
   @override
@@ -112,11 +130,19 @@ class ViesValidationResponse {
           other.requestDate == requestDate &&
           other.valid == valid &&
           other.name == name &&
-          other.address == address;
+          other.address == address &&
+          other.source == source;
 
   @override
-  int get hashCode =>
-      Object.hash(countryCode, vatNumber, requestDate, valid, name, address);
+  int get hashCode => Object.hash(
+    countryCode,
+    vatNumber,
+    requestDate,
+    valid,
+    name,
+    address,
+    source,
+  );
 
   @override
   String toString() =>
@@ -126,5 +152,6 @@ class ViesValidationResponse {
       'requestDate: $requestDate, '
       'valid: $valid, '
       'name: $name, '
-      'address: $address)';
+      'address: $address, '
+      'source: ${source.name})';
 }
