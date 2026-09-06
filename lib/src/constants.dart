@@ -6,7 +6,7 @@ import 'package:vies/src/models/country.dart';
 const String viesServiceUrl =
     'https://ec.europa.eu/taxation_customs/vies/services/checkVatService';
 
-/// Test endpoint of the VIES `checkVat` service — returns deterministic
+/// Test endpoint of the VIES `checkVat` service - returns deterministic
 /// success/failure based on the VAT number tail, useful for integration
 /// testing without hitting the real database.
 const String viesTestServiceUrl =
@@ -18,7 +18,7 @@ const Duration defaultRequestTimeout = Duration(seconds: 30);
 
 /// Convenience list of European country codes the package may encounter when
 /// dealing with VAT numbers. This is **not** a strict list of EU member
-/// states — it includes EEA neighbours and a few other European territories
+/// states - it includes EEA neighbours and a few other European territories
 /// that frequently appear in business directories.
 ///
 /// Note: the canonical codes used by VIES are mostly ISO 3166-1 alpha-2, with
@@ -98,7 +98,7 @@ const String soapBodyTemplate =
 
 /// HTTP headers required by the VIES SOAP endpoint.
 ///
-/// `Host` and `Connection` are intentionally omitted — `package:http` and
+/// `Host` and `Connection` are intentionally omitted - `package:http` and
 /// the underlying `dart:io` HttpClient manage them automatically and adding
 /// them by hand can break HTTP/2 connections.
 const Map<String, String> viesHeaders = {

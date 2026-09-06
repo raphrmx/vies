@@ -1,14 +1,14 @@
 ## 2.0.0
 
-Major rewrite. **Breaking changes** — see migration notes below.
+Major rewrite. **Breaking changes** - see migration notes below.
 
 ### Added
 - `ViesErrorCode` enum replacing the previous string codes; each value
   carries a `wireName` (stable identifier) and a human-readable `message`.
 - Sealed `ViesError` base class, implemented by `ViesClientError` and
-  `ViesServerError` — both now `implements Exception` instead of extending
+  `ViesServerError` - both now `implements Exception` instead of extending
   `AssertionError`.
-- `http.Client` injection via the new `client:` parameter — enables
+- `http.Client` injection via the new `client:` parameter - enables
   connection reuse and clean mocking in tests.
 - Optional `retries:` parameter with exponential backoff for transient VIES
   faults (`MS_UNAVAILABLE`, `MS_MAX_CONCURRENT_REQ`, `SERVICE_UNAVAILABLE`,
@@ -25,18 +25,18 @@ Major rewrite. **Breaking changes** — see migration notes below.
 
 ### Changed
 - `ViesProvider` is now an `abstract final class` with a private constructor
-  — no longer instantiable.
+  - no longer instantiable.
 - Internal modules split out of the provider for clarity and testability:
-  - `xml_codec.dart` — XML escape/unescape and tag extraction.
-  - `vat_shape.dart` — offline VAT regex validation.
-  - `soap_parser.dart` — SOAP body → `ViesValidationResponse` decoding.
+  - `xml_codec.dart` - XML escape/unescape and tag extraction.
+  - `vat_shape.dart` - offline VAT regex validation.
+  - `soap_parser.dart` - SOAP body -> `ViesValidationResponse` decoding.
   The provider itself now only owns the public API, the HTTP call, and the
   retry loop.
 - Pre-compiled all regular expressions (one-time cost per process).
 - Cleaner SOAP body template using `{countryCode}` / `{vatNumber}` markers.
 - HTTP headers no longer include `Host` / `Connection` (handled by the
   transport) and use a sensible `Content-Type`.
-- Robust namespace handling — parser tolerates any prefix on SOAP and VIES
+- Robust namespace handling - parser tolerates any prefix on SOAP and VIES
   elements and arbitrary attributes on tags.
 - `requestDate` in regex-only mode is now a proper ISO 8601 UTC timestamp.
 - Empty `name` / `address` values are normalised to `null`.
@@ -47,15 +47,15 @@ Major rewrite. **Breaking changes** — see migration notes below.
   `http.ClientException` and work on every platform, web included.
 - Catch-all that previously swallowed `ViesClientError` from the parsing
   path and reported every failure as `SERVER_DISCONNECTED`.
-- Typo in error code `SERVER_DICONNECTED` → `SERVER_DISCONNECTED` (now
+- Typo in error code `SERVER_DICONNECTED` -> `SERVER_DISCONNECTED` (now
   exposed only via `ViesErrorCode.serverDisconnected.wireName`).
 - Iceland country code corrected from `IC` to `IS`.
 - Regex shape errors now raise `ViesClientError` (was `ViesServerError`).
 
 ### Removed
-- `html_unescape` dependency — replaced by an in-package XML entity decoder.
+- `html_unescape` dependency - replaced by an in-package XML entity decoder.
 - `ViesProvider.classId` field (was test-only scaffolding).
-- The standalone `viesErrors` map — error messages now live on
+- The standalone `viesErrors` map - error messages now live on
   `ViesErrorCode`.
 
 ### Migration from 1.x
@@ -80,7 +80,7 @@ Major rewrite. **Breaking changes** — see migration notes below.
 + } on ViesServerError catch (e) {
 +   if (e.code == ViesErrorCode.serverDisconnected) { ... }
 + } on ViesClientError catch (e) {
-+   // Invalid VAT, parsing errors, INVALID_INPUT faults …
++   // Invalid VAT, parsing errors, INVALID_INPUT faults ...
 + }
 ```
 

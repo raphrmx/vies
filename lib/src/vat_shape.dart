@@ -2,7 +2,7 @@ import 'package:vies/src/enums.dart';
 
 /// Offline syntactic validation of VAT numbers.
 ///
-/// The package ships two regexes — see [VatShape.isValid] — so callers can
+/// The package ships two regexes - see [VatShape.isValid] - so callers can
 /// trade strictness (`RegexType.eu`) for tolerance (`RegexType.world`).
 abstract final class VatShape {
   VatShape._();
@@ -14,7 +14,7 @@ abstract final class VatShape {
     '[0-9A-Za-z+*.]{8,12}\$',
   );
 
-  /// Lenient regex: any 2–4 uppercase letters followed by 8–20 alphanumeric
+  /// Lenient regex: any 2-4 uppercase letters followed by 8-20 alphanumeric
   /// characters.
   static final RegExp _worldVatRegex = RegExp('^[A-Z]{2,4}[A-Z0-9]{8,20}\$');
 
@@ -29,7 +29,8 @@ abstract final class VatShape {
   /// digits) matches the selected regex.
   static bool isValid(String fullVatNumber, RegexType regexType) {
     final cleaned = normalize(fullVatNumber);
-    return (regexType == RegexType.eu ? _euVatRegex : _worldVatRegex)
-        .hasMatch(cleaned);
+    return (regexType == RegexType.eu ? _euVatRegex : _worldVatRegex).hasMatch(
+      cleaned,
+    );
   }
 }

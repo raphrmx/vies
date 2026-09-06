@@ -15,7 +15,7 @@ abstract final class SoapParser {
   ///     caller-side problem (invalid input, parsing error, soap fault),
   ///     or when VIES reports `valid=false`.
   ///   * [ViesServerError] for transient faults (`MS_UNAVAILABLE`,
-  ///     `SERVICE_UNAVAILABLE`, …) that the caller may want to retry.
+  ///     `SERVICE_UNAVAILABLE`, ...) that the caller may want to retry.
   static ViesValidationResponse parse(String soapMessage) {
     if (XmlCodec.faultRegex.firstMatch(soapMessage) != null) {
       _throwForFault(soapMessage);

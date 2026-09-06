@@ -1,10 +1,11 @@
 /// A country exposed by the package as a known VAT origin.
 ///
 /// The list at [europeanCountries] (in `constants.dart`) is not strictly
-/// limited to EU member states — it also contains a few neighbouring
-/// territories that may appear in business directories. For *VIES* validity
-/// the canonical list is the regex inside [ViesProvider].
+/// limited to EU member states - it also contains a few neighbouring
+/// territories that may appear in business directories. For VIES validity the
+/// canonical list is the regex inside [ViesProvider].
 class Country {
+  /// Creates a country from its English [name] and its [code].
   const Country({required this.name, required this.code});
 
   /// English country name.
@@ -14,6 +15,7 @@ class Country {
   /// exceptions used by VIES: `EL` (Greece) and `XI` (Northern Ireland).
   final String code;
 
+  /// JSON representation, with the `name` and `code` fields.
   Map<String, String> toJson() => {'name': name, 'code': code};
 
   @override

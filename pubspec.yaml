@@ -1,8 +1,8 @@
 name: vies
 description: >-
-  VIES (VAT Information Exchange System) client for Dart — validate European
-  VAT numbers and retrieve business information from the official EU service.
-version: 2.0.0+1
+  VIES (VAT Information Exchange System) client for Dart. Validates European VAT
+  numbers and retrieves the business information published by the EU service.
+version: 2.0.0
 homepage: https://www.comapps.be
 repository: https://github.com/raphrmx/vies
 issue_tracker: https://github.com/raphrmx/vies/issues
@@ -14,7 +14,7 @@ topics:
   - eu
 
 environment:
-  sdk: '>=3.8.0 <4.0.0'
+  sdk: ^3.8.0
 
 dependencies:
   http: ^1.6.0
