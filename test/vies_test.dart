@@ -346,4 +346,101 @@ void main() {
       expect(r.requestDateTime!.year, 2026);
     });
   });
+
+  group('regressions', () {
+    test('an unreadable body is a parsing error, not an invalid VAT', () {
+      for (final body in ['<html>502 Bad Gateway</html>', '', 'null']) {
+        expect(
+          () => ViesProvider.debugParseSoapResponse(body),
+          throwsA(
+            isA<ViesClientError>().having(
+              (e) => e.code,
+              'code',
+              ViesErrorCode.parsingError,
+            ),
+          ),
+          reason: 'body: "$body"',
+        );
+      }
+    });
+
+    test('a VAT number typed in lower case is accepted', () async {
+      final response = await ViesProvider.validateVat(
+        countryCode: 'nl',
+        vatNumber: '123456789b01',
+        validationLevel: ValidationLevel.regex,
+        regexType: RegexType.eu,
+      );
+      expect(response.countryCode, 'NL');
+      expect(response.vatNumber, '123456789B01');
+    });
+
+    test('separators are stripped before validation', () async {
+      final response = await ViesProvider.validateVat(
+        countryCode: 'BE',
+        vatNumber: ' 1000.341-796 ',
+        validationLevel: ValidationLevel.regex,
+        regexType: RegexType.eu,
+      );
+      expect(response.vatNumber, '1000341796');
+    });
+
+    test('each member state format is honoured, not one shared length', () {
+      const samples = {
+        'ATU12345678': true,
+        'BE1000341796': true,
+        'CY12345678L': true,
+        'DE123456789': true,
+        'FRAB123456789': true,
+        'IE1234567FA': true,
+        'NL123456789B01': true,
+        'RO99908': true, // Romania: 2 to 10 digits
+        'SE123456789012': true,
+        'DE12345': false, // too short for Germany
+        'NL123456789X01': false, // the Dutch separator is a B
+        'ZZ123456789': false, // unknown prefix
+      };
+      samples.forEach((vat, expected) {
+        expect(VatShape.isValid(vat, RegexType.eu), expected, reason: vat);
+      });
+    });
+
+    test('a malformed character reference does not escape as a RangeError', () {
+      final response = ViesProvider.debugParseSoapResponse(
+        _validSoap(name: '&#999999999999; &#xFFFFFFFF; &#65;'),
+      );
+      expect(response.name, contains('A'));
+      expect(response.name, contains('&#999999999999;'));
+    });
+
+    test('a regex-only result is flagged as such', () async {
+      final offline = await ViesProvider.validateVat(
+        countryCode: 'BE',
+        vatNumber: '1000341796',
+        validationLevel: ValidationLevel.regex,
+      );
+      expect(offline.source, ValidationSource.regex);
+
+      final online = await ViesProvider.validateVat(
+        countryCode: 'BE',
+        vatNumber: '1000341796',
+        client: MockClient((_) async => http.Response(_validSoap(), 200)),
+      );
+      expect(online.source, ValidationSource.vies);
+    });
+
+    test('serviceUrl selects the endpoint that is called', () async {
+      var called = '';
+      await ViesProvider.validateVat(
+        countryCode: 'BE',
+        vatNumber: '1000341796',
+        serviceUrl: viesTestServiceUrl,
+        client: MockClient((request) async {
+          called = request.url.toString();
+          return http.Response(_validSoap(), 200);
+        }),
+      );
+      expect(called, viesTestServiceUrl);
+    });
+  });
 }

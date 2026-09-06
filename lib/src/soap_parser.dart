@@ -25,23 +25,28 @@ abstract final class SoapParser {
     final vatNumber = XmlCodec.parseField(soapMessage, 'vatNumber');
     final name = XmlCodec.parseField(soapMessage, 'name');
     final requestDate = XmlCodec.parseField(soapMessage, 'requestDate');
-    final valid =
-        XmlCodec.parseField(soapMessage, 'valid')?.toLowerCase() == 'true';
+    final rawValid = XmlCodec.parseField(soapMessage, 'valid');
     final address = XmlCodec.parseField(soapMessage, 'address');
 
-    if (!valid) {
-      throw const ViesClientError(code: ViesErrorCode.invalidVatNumber);
+    // A body the codec cannot read leaves every field null. Reporting that as
+    // an invalid VAT number would tell the caller their input is wrong when
+    // the real problem is the response, so the completeness check comes first.
+    if (countryCode == null ||
+        vatNumber == null ||
+        requestDate == null ||
+        rawValid == null) {
+      throw const ViesClientError(code: ViesErrorCode.parsingError);
     }
 
-    if (countryCode == null || vatNumber == null || requestDate == null) {
-      throw const ViesClientError(code: ViesErrorCode.parsingError);
+    if (rawValid.trim().toLowerCase() != 'true') {
+      throw const ViesClientError(code: ViesErrorCode.invalidVatNumber);
     }
 
     return ViesValidationResponse(
       countryCode: countryCode,
       vatNumber: vatNumber,
       requestDate: requestDate,
-      valid: valid,
+      valid: true,
       name: _nullIfBlank(name),
       address: _nullIfBlank(address),
     );

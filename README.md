@@ -72,6 +72,33 @@ await ViesProvider.validateVat(
 );
 ```
 
+A regex-only result is not a validation. `source` says which check answered,
+so a shape check is never recorded as a confirmation from a member state:
+
+```dart
+final response = await ViesProvider.validateVat(
+  countryCode: 'FR',
+  vatNumber: '64443061841',
+  validationLevel: ValidationLevel.regex,
+);
+response.valid;  // true
+response.source; // ValidationSource.regex, nobody confirmed anything
+```
+
+### Offline shape check
+
+`VatShape` answers without a network call. `RegexType.eu` applies the format
+published by each member state, `RegexType.world` a single permissive shape:
+
+```dart
+VatShape.isValid('NL123456789b01', RegexType.eu); // true, case-insensitive
+VatShape.isValid('RO99908', RegexType.eu);        // true, RO is 2 to 10 digits
+VatShape.isValid('DE12345', RegexType.eu);        // false, DE is 9 digits
+
+VatShape.normalize(' 1234 5678-9b01 '); // 123456789B01
+VatShape.supportedCountryCodes;         // the prefixes RegexType.eu knows
+```
+
 ### Reusing an HTTP client
 
 For batch validation, inject a shared `http.Client` to enable connection
@@ -90,6 +117,24 @@ try {
 } finally {
   client.close();
 }
+```
+
+`timeout` bounds one attempt, not the whole call. With `retries: 2` a call can
+take up to three times the timeout plus the backoff, which is capped at
+`maxRetryBackoff`.
+
+### Test endpoint
+
+`serviceUrl` selects the endpoint. The VIES test service answers
+deterministically from the VAT number tail, which is useful in integration
+tests that must not touch the real database:
+
+```dart
+await ViesProvider.validateVat(
+  countryCode: 'BE',
+  vatNumber: '100',
+  serviceUrl: viesTestServiceUrl,
+);
 ```
 
 ### Country prefixes
