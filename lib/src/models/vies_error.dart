@@ -21,7 +21,7 @@ sealed class ViesError implements Exception {
   ///   [code] is used instead.
   /// - [viesResponse]: the raw text returned for this error, when there is one.
   const ViesError({required this.code, String? message, this.viesResponse})
-    : _message = message;
+      : _message = message;
 
   /// Strongly-typed error code.
   final ViesErrorCode code;
@@ -41,11 +41,11 @@ sealed class ViesError implements Exception {
 
   /// JSON representation, suitable for logging or persistence.
   Map<String, Object?> toJson() => {
-    'type': typeName,
-    'code': code.wireName,
-    'message': message,
-    'viesResponse': viesResponse,
-  };
+        'type': typeName,
+        'code': code.wireName,
+        'message': message,
+        'viesResponse': viesResponse,
+      };
 
   @override
   String toString() => '$typeName(${code.wireName}): $message';

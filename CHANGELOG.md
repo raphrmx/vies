@@ -1,3 +1,8 @@
+## 2.0.1
+
+- Lowers the Dart floor to 3.0, from 3.8. The code uses no language feature above 3.0.
+- No change to the API or to the behaviour.
+
 ## 2.0.0
 
 Major rewrite. **Breaking changes** - see migration notes below.

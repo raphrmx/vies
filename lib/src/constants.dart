@@ -86,8 +86,7 @@ const List<Country> europeanCountries = [
 ///
 /// `{countryCode}` and `{vatNumber}` are replaced at request time. Both
 /// values are XML-escaped before substitution.
-const String soapBodyTemplate =
-    '<?xml version="1.0"?>'
+const String soapBodyTemplate = '<?xml version="1.0"?>'
     '<soapenv:Envelope '
     'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" '
     'xmlns:urn="urn:ec.europa.eu:taxud:vies:services:checkVat:types">'

@@ -161,8 +161,7 @@ abstract final class ViesProvider {
       if (response.statusCode != 200) {
         throw ViesServerError(
           code: ViesErrorCode.serverDisconnected,
-          message:
-              'VIES returned HTTP ${response.statusCode} '
+          message: 'VIES returned HTTP ${response.statusCode} '
               '(${response.reasonPhrase ?? 'no reason'}).',
         );
       }

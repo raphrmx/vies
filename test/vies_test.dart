@@ -136,8 +136,7 @@ void main() {
     });
 
     test('tolerates tag attributes and namespace prefix variations', () {
-      const xml =
-          '<env:Envelope xmlns:env="x">'
+      const xml = '<env:Envelope xmlns:env="x">'
           '<env:Body>'
           '<r:checkVatResponse xmlns:r="urn:x">'
           '<r:countryCode xml:lang="en">BE</r:countryCode>'
