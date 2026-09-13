@@ -9,7 +9,7 @@ Validates a VAT number and, when valid, returns the registered business
 information (legal name, address) published by the member state.
 
 [![Pub Version](https://img.shields.io/pub/v/vies?color=blue)](https://pub.dev/packages/vies)
-![Maintainer](https://img.shields.io/badge/Maintainer-Raphael_Vrient-purple)
+[![Maintainer](https://img.shields.io/badge/Maintainer-Raphael_Vrient-purple)](https://pub.dev/publishers/comapps.be/packages)
 [![License](https://img.shields.io/badge/Licence-MIT-blue)](/LICENSE)
 ![Maintenance](https://img.shields.io/badge/Maintained-yes-success)
 ![Null Safety](https://img.shields.io/badge/Null_Safety-passing-success)

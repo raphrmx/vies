@@ -99,27 +99,28 @@ class ViesValidationResponse {
     String? name,
     String? address,
     ValidationSource? source,
-  }) => ViesValidationResponse(
-    countryCode: countryCode ?? this.countryCode,
-    vatNumber: vatNumber ?? this.vatNumber,
-    requestDate: requestDate ?? this.requestDate,
-    valid: valid ?? this.valid,
-    name: name ?? this.name,
-    address: address ?? this.address,
-    source: source ?? this.source,
-  );
+  }) =>
+      ViesValidationResponse(
+        countryCode: countryCode ?? this.countryCode,
+        vatNumber: vatNumber ?? this.vatNumber,
+        requestDate: requestDate ?? this.requestDate,
+        valid: valid ?? this.valid,
+        name: name ?? this.name,
+        address: address ?? this.address,
+        source: source ?? this.source,
+      );
 
   /// JSON representation, round-trippable through
   /// [ViesValidationResponse.fromJson].
   Map<String, Object?> toJson() => {
-    'countryCode': countryCode,
-    'vatNumber': vatNumber,
-    'requestDate': requestDate,
-    'valid': valid,
-    'name': name,
-    'address': address,
-    'source': source.name,
-  };
+        'countryCode': countryCode,
+        'vatNumber': vatNumber,
+        'requestDate': requestDate,
+        'valid': valid,
+        'name': name,
+        'address': address,
+        'source': source.name,
+      };
 
   @override
   bool operator ==(Object other) =>
@@ -135,18 +136,17 @@ class ViesValidationResponse {
 
   @override
   int get hashCode => Object.hash(
-    countryCode,
-    vatNumber,
-    requestDate,
-    valid,
-    name,
-    address,
-    source,
-  );
+        countryCode,
+        vatNumber,
+        requestDate,
+        valid,
+        name,
+        address,
+        source,
+      );
 
   @override
-  String toString() =>
-      'ViesValidationResponse('
+  String toString() => 'ViesValidationResponse('
       'countryCode: $countryCode, '
       'vatNumber: $vatNumber, '
       'requestDate: $requestDate, '

@@ -1,0 +1,3 @@
+# The formatter writes LF, and CI checks the formatting. Without this, a
+# Windows checkout stores CRLF and the check never passes.
+* text=auto eol=lf
