@@ -30,8 +30,7 @@ import 'package:vies/vies.dart';
 Future<void> main() async {
   try {
     final response = await ViesProvider.validateVat(
-      countryCode: 'BE',
-      vatNumber: '1000341796',
+      vatNumber: 'BE1000341796',
       timeout: const Duration(seconds: 15),
       retries: 2, // transient VIES faults are retried with backoff
     );
@@ -52,22 +51,19 @@ Future<void> main() async {
 ```dart
 // Offline regex check only (no network call):
 await ViesProvider.validateVat(
-  countryCode: 'FR',
-  vatNumber: '64443061841',
+  vatNumber: 'FR64443061841',
   validationLevel: ValidationLevel.regex,
 );
 
 // Skip the regex pre-check, hit VIES directly:
 await ViesProvider.validateVat(
-  countryCode: 'FR',
-  vatNumber: '64443061841',
+  vatNumber: 'FR64443061841',
   validationLevel: ValidationLevel.vies,
 );
 
 // Default: regex first, then VIES (saves a network round-trip on bad input):
 await ViesProvider.validateVat(
-  countryCode: 'FR',
-  vatNumber: '64443061841',
+  vatNumber: 'FR64443061841',
   // validationLevel: ValidationLevel.all,
 );
 ```
@@ -77,8 +73,7 @@ so a shape check is never recorded as a confirmation from a member state:
 
 ```dart
 final response = await ViesProvider.validateVat(
-  countryCode: 'FR',
-  vatNumber: '64443061841',
+  vatNumber: 'FR64443061841',
   validationLevel: ValidationLevel.regex,
 );
 response.valid;  // true
@@ -109,8 +104,7 @@ final client = http.Client();
 try {
   for (final vat in batch) {
     await ViesProvider.validateVat(
-      countryCode: vat.country,
-      vatNumber: vat.number,
+      vatNumber: '${vat.country}${vat.number}',
       client: client,
     );
   }
@@ -131,8 +125,7 @@ tests that must not touch the real database:
 
 ```dart
 await ViesProvider.validateVat(
-  countryCode: 'BE',
-  vatNumber: '100',
+  vatNumber: 'BE100',
   serviceUrl: viesTestServiceUrl,
 );
 ```
@@ -142,6 +135,27 @@ await ViesProvider.validateVat(
 VIES uses ISO 3166-1 alpha-2 codes, with two exceptions:
 * **`EL`** for Greece (instead of `GR`).
 * **`XI`** for Northern Ireland (post-Brexit).
+
+`vatNumber` takes the prefix and the number together, with or without
+separators. Spaces, dots and hyphens are stripped before anything else.
+
+```dart
+await ViesProvider.validateVat(vatNumber: 'BE1003546213');
+await ViesProvider.validateVat(vatNumber: 'BE1003.546.213');
+await ViesProvider.validateVat(vatNumber: 'be 1003 546 213');
+```
+
+Only a prefix VIES knows counts as one, so a Spanish `B12345678` is left
+whole. With no country to read, the call throws `ViesClientError` carrying
+`ViesErrorCode.invalidInput`.
+
+`countryCode` is deprecated and goes away in 3.0.0. Keep the prefix in the
+number: a French key of two letters can read as a country code, so
+`countryCode: 'FR'` with `vatNumber: 'BE123456789'` reaches Belgium, where
+`vatNumber: 'FRBE123456789'` reaches France.
+
+`VatShape.split` does the same reading offline, and returns null when there is
+no prefix to read.
 
 ## Error codes
 

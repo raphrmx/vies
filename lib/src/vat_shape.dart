@@ -83,6 +83,40 @@ abstract final class VatShape {
   static String normalize(String vatNumber) =>
       vatNumber.replaceAll(_cleanupRegex, '').toUpperCase();
 
+  /// Splits [fullVatNumber] into the country prefix it carries and the number
+  /// that follows it.
+  ///
+  /// The value goes through [normalize] first, so `BE1003.546.213`,
+  /// `be 1003 546 213` and `BE1003546213` split the same way. A value that
+  /// starts with no prefix VIES knows returns null, which is what a number
+  /// typed without its country does.
+  ///
+  /// ---
+  ///
+  /// ### Parameters:
+  /// - [fullVatNumber]: prefix and number, or the number alone.
+  ///
+  /// ### Returns:
+  /// The prefix and the number that follows it, or null when there is no
+  /// prefix to read.
+  ///
+  /// ### Example:
+  /// ```dart
+  /// VatShape.split('BE1003.546.213'); // (countryCode: BE, vatNumber: 1003546213)
+  /// VatShape.split('1003546213');     // null
+  /// ```
+  static ({String countryCode, String vatNumber})? split(
+    String fullVatNumber,
+  ) {
+    final match = _prefixRegex.firstMatch(normalize(fullVatNumber));
+    if (match == null) return null;
+
+    final prefix = match.group(1)!;
+    if (!_countryFormats.containsKey(prefix)) return null;
+
+    return (countryCode: prefix, vatNumber: match.group(2)!);
+  }
+
   /// Whether [fullVatNumber] has a plausible shape.
   ///
   /// [fullVatNumber] is the country prefix concatenated with the number. It

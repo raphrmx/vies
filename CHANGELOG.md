@@ -1,3 +1,25 @@
+## 2.1.0
+
+### Added
+- `validateVat` takes the country prefix inside `vatNumber`. `BE1003546213`,
+  `BE1003.546.213`, `1003546213` and `1003.546.213` are all accepted, and
+  `countryCode` is now optional. A prefix read from `vatNumber` wins over
+  `countryCode`; with no country on either side the call throws
+  `ViesClientError` carrying `ViesErrorCode.invalidInput`.
+- `VatShape.split` returns the country prefix and the number that follows it,
+  or null when the value carries no prefix VIES knows.
+
+### Deprecated
+- `countryCode`, removed in 3.0.0. Put the prefix in `vatNumber` instead. A
+  French key of two letters can read as a country code, so `countryCode: 'FR'`
+  with `vatNumber: 'BE123456789'` reaches Belgium where
+  `vatNumber: 'FRBE123456789'` reaches France. Keeping the prefix and the
+  number together removes the ambiguity.
+
+### Changed
+- `countryCode` is no longer required. Existing calls still compile, with a
+  deprecation warning.
+
 ## 2.0.1
 
 - Lowers the Dart floor to 3.0, from 3.8. The code uses no language feature above 3.0.

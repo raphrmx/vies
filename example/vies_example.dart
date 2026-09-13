@@ -5,8 +5,7 @@ import 'package:vies/vies.dart';
 Future<void> main() async {
   try {
     final response = await ViesProvider.validateVat(
-      countryCode: 'BE',
-      vatNumber: '1000341796',
+      vatNumber: 'BE1000341796',
       timeout: const Duration(seconds: 15),
       retries: 2,
     );
