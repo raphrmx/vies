@@ -442,4 +442,90 @@ void main() {
       expect(called, viesTestServiceUrl);
     });
   });
+
+  group('A vatNumber that carries its own country', () {
+    Future<ViesValidationResponse> check(
+      String vatNumber, {
+      String? countryCode,
+    }) =>
+        ViesProvider.validateVat(
+          vatNumber: vatNumber,
+          countryCode: countryCode,
+          validationLevel: ValidationLevel.regex,
+          regexType: RegexType.eu,
+        );
+
+    test('reads the prefix, with or without separators', () async {
+      for (final written in [
+        'BE1003546213',
+        'BE1003.546.213',
+        'be 1003 546 213',
+        'BE-1003-546-213',
+      ]) {
+        final res = await check(written);
+        expect(res.countryCode, 'BE', reason: written);
+        expect(res.vatNumber, '1003546213', reason: written);
+      }
+    });
+
+    test('falls back to countryCode when the number carries none', () async {
+      for (final written in ['1003546213', '1003.546.213']) {
+        final res = await check(written, countryCode: 'BE');
+        expect(res.countryCode, 'BE', reason: written);
+        expect(res.vatNumber, '1003546213', reason: written);
+      }
+    });
+
+    test('keeps countryCode working as it did before', () async {
+      final res = await check('1000341796', countryCode: 'be');
+      expect(res.countryCode, 'BE');
+      expect(res.vatNumber, '1000341796');
+    });
+
+    test('lets the prefix win over a countryCode that disagrees', () async {
+      final res = await check('BE1003546213', countryCode: 'FR');
+      expect(res.countryCode, 'BE');
+      expect(res.vatNumber, '1003546213');
+    });
+
+    test('refuses a number with no country anywhere', () async {
+      await expectLater(
+        check('1003546213'),
+        throwsA(
+          isA<ViesClientError>().having(
+            (e) => e.code,
+            'code',
+            ViesErrorCode.invalidInput,
+          ),
+        ),
+      );
+    });
+
+    test('leaves a number alone when its prefix is unknown', () {
+      expect(VatShape.split('ZZ1003546213'), isNull);
+      expect(VatShape.split('1003546213'), isNull);
+      expect(VatShape.split('B12345678'), isNull);
+    });
+
+    test('keeps a French two-letter key with its own prefix', () async {
+      final res = await check('FRBE123456789');
+      expect(res.countryCode, 'FR');
+      expect(res.vatNumber, 'BE123456789');
+    });
+
+    test('reads that same key as a country when the prefix is missing',
+        () async {
+      // Why countryCode is deprecated: the prefix belongs in the number.
+      final res = await check('BE123456789', countryCode: 'FR');
+      expect(res.countryCode, 'BE');
+    });
+
+    test('splits every prefix VIES knows', () {
+      for (final code in VatShape.supportedCountryCodes) {
+        final parts = VatShape.split('${code}123456789');
+        expect(parts?.countryCode, code, reason: code);
+        expect(parts?.vatNumber, '123456789', reason: code);
+      }
+    });
+  });
 }

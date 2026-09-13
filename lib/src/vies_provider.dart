@@ -16,8 +16,7 @@ import 'package:vies/src/xml_codec.dart';
 /// Example:
 /// ```dart
 /// final response = await ViesProvider.validateVat(
-///   countryCode: 'BE',
-///   vatNumber: '1000341796',
+///   vatNumber: 'BE1000341796',
 /// );
 /// print('${response.name} - ${response.address}');
 /// ```
@@ -33,10 +32,16 @@ abstract final class ViesProvider {
   /// Validate a VAT number against the VIES SOAP service.
   ///
   /// Parameters:
-  ///   * [countryCode] - two-letter country prefix. Use `EL` for Greece and
-  ///     `XI` for Northern Ireland.
-  ///   * [vatNumber] - the digits/letters that follow the country prefix.
-  ///     Spaces and hyphens are tolerated and stripped before validation.
+  ///   * [vatNumber] - the number, with or without its country prefix.
+  ///     `BE1003546213`, `BE1003.546.213`, `1003546213` and `1003.546.213`
+  ///     are all accepted: spaces, dots and hyphens are stripped, and a
+  ///     prefix VIES knows is read as the country.
+  ///   * [countryCode] - deprecated. Put the prefix in [vatNumber] instead.
+  ///     A prefix found there wins over this parameter, and a French key of
+  ///     two letters can read as a country code: `countryCode: 'FR'` with
+  ///     `vatNumber: 'BE123456789'` reaches Belgium, where
+  ///     `vatNumber: 'FRBE123456789'` reaches France. Leaving both without a
+  ///     country throws [ViesErrorCode.invalidInput].
   ///   * [timeout] - applied to each HTTP attempt, not to the call as a whole.
   ///     With [retries] the total wall time reaches `(retries + 1) * timeout`
   ///     plus the backoff. Defaults to [defaultRequestTimeout].
@@ -52,8 +57,9 @@ abstract final class ViesProvider {
   ///   * [serviceUrl] - endpoint to call. Defaults to [viesServiceUrl]; pass
   ///     [viesTestServiceUrl] to exercise the deterministic test service.
   static Future<ViesValidationResponse> validateVat({
-    required String countryCode,
     required String vatNumber,
+    @Deprecated('Put the prefix in vatNumber instead. Removed in 3.0.0.')
+    String? countryCode,
     Duration timeout = defaultRequestTimeout,
     ValidationLevel validationLevel = ValidationLevel.all,
     RegexType regexType = RegexType.world,
@@ -61,8 +67,14 @@ abstract final class ViesProvider {
     int retries = 0,
     String serviceUrl = viesServiceUrl,
   }) async {
-    final cleanCountry = countryCode.trim().toUpperCase();
-    final cleanVat = VatShape.normalize(vatNumber);
+    final carried = VatShape.split(vatNumber);
+    final cleanCountry =
+        carried?.countryCode ?? (countryCode ?? '').trim().toUpperCase();
+    final cleanVat = carried?.vatNumber ?? VatShape.normalize(vatNumber);
+
+    if (cleanCountry.isEmpty) {
+      throw const ViesClientError(code: ViesErrorCode.invalidInput);
+    }
 
     if (validationLevel == ValidationLevel.regex ||
         validationLevel == ValidationLevel.all) {
