@@ -1,3 +1,9 @@
+## 2.1.1
+
+### Changed
+
+- `homepage` points at the demo, which runs the package in a browser.
+
 ## 2.1.0
 
 ### Added
