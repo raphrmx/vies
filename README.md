@@ -1,18 +1,13 @@
-[![VIES](https://ec.europa.eu/taxation_customs/vies/assets/images/ecl/ec/logo/logo-ec--fr.svg)](https://ec.europa.eu/taxation_customs/vies/technicalInformation.html)
-
-<a alt="ComApps Logo" href="https://comapps.be" target="_blank" rel="noreferrer"><img src="https://www.comapps.be/wp-content/uploads/2026/09/CompleteLogoHorizontalMini.png" style="margin: 15px"></a>
-
 # VIES (VAT Validation)
 
 A Dart client for the EU [VIES `checkVat` SOAP service](https://ec.europa.eu/taxation_customs/vies/checkVatService.wsdl).
 Validates a VAT number and, when valid, returns the registered business
 information (legal name, address) published by the member state.
 
-[![Pub Version](https://img.shields.io/pub/v/vies?color=blue)](https://pub.dev/packages/vies)
-[![Maintainer](https://img.shields.io/badge/Maintainer-Raphael_Vrient-purple)](https://pub.dev/publishers/comapps.be/packages)
-[![License](https://img.shields.io/badge/Licence-MIT-blue)](/LICENSE)
-![Maintenance](https://img.shields.io/badge/Maintained-yes-success)
-![Null Safety](https://img.shields.io/badge/Null_Safety-passing-success)
+[![Live demo](https://img.shields.io/badge/Live_demo-comapps.web.app-3c9a70)](https://comapps.web.app/vies/)
+[![Pub Version](https://img.shields.io/pub/v/vies?color=0175C2)](https://pub.dev/packages/vies)
+![Maintainer](https://img.shields.io/badge/Maintainer-Raphael_Vrient-733d90)
+[![Licence](https://img.shields.io/badge/Licence-MIT-8C6A3F)](LICENSE)
 ![Platforms](https://img.shields.io/badge/Platforms-Android,_iOS,_macOS,_Windows,_Linux,_Web-22375C.svg)
 
 ## Install
