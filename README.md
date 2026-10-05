@@ -4,11 +4,13 @@ A Dart client for the EU [VIES `checkVat` SOAP service](https://ec.europa.eu/tax
 Validates a VAT number and, when valid, returns the registered business
 information (legal name, address) published by the member state.
 
-[![Live demo](https://img.shields.io/badge/Live_demo-comapps.web.app-3c9a70)](https://comapps.web.app/vies/)
+[![Live demo](https://img.shields.io/badge/Live_demo-packages.comapps.be-3c9a70)](https://packages.comapps.be/vies/)
 [![Pub Version](https://img.shields.io/pub/v/vies?color=0175C2)](https://pub.dev/packages/vies)
+[![Build](https://img.shields.io/github/actions/workflow/status/raphrmx/vies/ci.yml?branch=master&label=build)](https://github.com/raphrmx/vies/actions/workflows/ci.yml)
 ![Maintainer](https://img.shields.io/badge/Maintainer-Raphael_Vrient-733d90)
 [![Licence](https://img.shields.io/badge/Licence-MIT-8C6A3F)](LICENSE)
 ![Platforms](https://img.shields.io/badge/Platforms-Android,_iOS,_macOS,_Windows,_Linux,_Web-22375C.svg)
+[![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white)](https://www.paypal.com/donate/?hosted_button_id=ZN6D382YQAV5N)
 
 ## Install
 
@@ -177,3 +179,8 @@ no prefix to read.
 ## License
 
 MIT - see [LICENSE](LICENSE).
+
+## More from COMAPPS
+
+Every package COMAPPS publishes is listed at
+[packages.comapps.be](https://packages.comapps.be).

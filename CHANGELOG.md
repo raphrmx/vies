@@ -1,3 +1,16 @@
+## 2.1.2
+
+### Changed
+
+- The README carries its build badge again, pointed at the branch the repository
+  actually builds from. Here that is `master`, which is why it read "no status"
+  against `main`.
+- `homepage` and the Live demo badge point at packages.comapps.be, where the
+  demo site moved. The old address redirects there.
+- The badge row carries a PayPal donation badge, `funding` points pub.dev
+  at the same donation page, and the README ends on the other packages
+  COMAPPS publishes. Nothing about the library changed.
+
 ## 2.1.1
 
 ### Changed
